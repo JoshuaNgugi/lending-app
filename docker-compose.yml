@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: lending-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: lending_app
+      POSTGRES_USER: lending_user
+      POSTGRES_PASSWORD: lending_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - lending_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  lending_postgres_data:
