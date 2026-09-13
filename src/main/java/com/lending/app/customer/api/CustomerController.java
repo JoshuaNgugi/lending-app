@@ -38,12 +38,7 @@ public class CustomerController {
     public ResponseEntity<CustomerResponse> create(@Valid @RequestBody CreateCustomerRequest request) {
         Customer customer = createCustomerService.execute(request);
 
-        CustomerResponse response = new CustomerResponse(
-                customer.getId(), customer.getFirstName(), customer.getLastName(), customer.getEmail(),
-                customer.getPhoneNumber(), customer.getStatus(), customer.getSegment(),
-                customer.getCreatedAt(), customer.getUpdatedAt());
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(customer));
     }
 
     @GetMapping("/{customerId}")
@@ -57,6 +52,7 @@ public class CustomerController {
     @PatchMapping("{customerId}")
     public ResponseEntity<CustomerResponse> patch(@PathVariable("customerId") UUID customerId,
             @RequestBody UpdateCustomerRequest request) {
+
         Customer customer = updateCustomerService.execute(customerId, request);
         return ResponseEntity.ok(toResponse(customer));
     }
