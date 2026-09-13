@@ -17,7 +17,6 @@ import com.lending.app.product.application.GetLoanProductService;
 import com.lending.app.product.domain.LoanProduct;
 
 import jakarta.validation.Valid;
-import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/api/v1/products")
@@ -32,7 +31,7 @@ public class LoanProductController {
 
     }
 
-    @GetMapping("{productId}")
+    @GetMapping("/{productId}")
     public LoanProductResponse get(@PathVariable("productId") UUID id) {
         LoanProduct product = getLoanProductService.execute(id);
         return toResponse(product);
