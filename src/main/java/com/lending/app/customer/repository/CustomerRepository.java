@@ -1,4 +1,4 @@
-package com.lending.app.customer.infrastructure.persistence;
+package com.lending.app.customer.repository;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -7,9 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.lending.app.customer.domain.Customer;
 
-public interface CustomerRepository extends JpaRepository<Customer, String> {
-
-    Customer save(Customer customer);
+public interface CustomerRepository extends JpaRepository<Customer, UUID> {
 
     Optional<Customer> findById(UUID id);
 
