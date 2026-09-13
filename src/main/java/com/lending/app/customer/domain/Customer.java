@@ -102,4 +102,20 @@ public class Customer {
         return updatedAt;
     }
 
+    public void updateDetails(String firstName, String lastName, String phoneNumber, CustomerSegment segment) {
+        if (firstName != null) {
+            this.firstName = firstName;
+        }
+        if (lastName != null) {
+            this.lastName = lastName;
+        }
+        if (phoneNumber != null) {
+            this.phoneNumber = phoneNumber;
+        }
+        if (segment != null) {
+            this.segment = segment;
+        }
+        this.updatedAt = Instant.now();
+    }
+
 }

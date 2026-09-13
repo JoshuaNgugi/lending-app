@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.lending.app.customer.application.CreateCustomerService;
 import com.lending.app.customer.application.GetCustomerService;
+import com.lending.app.customer.application.UpdateCustomerService;
 import com.lending.app.customer.domain.Customer;
 
 import jakarta.validation.Valid;
@@ -14,6 +15,7 @@ import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -23,10 +25,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 public class CustomerController {
     private final CreateCustomerService createCustomerService;
     private final GetCustomerService getCustomerService;
+    private final UpdateCustomerService updateCustomerService;
 
-    public CustomerController(CreateCustomerService createCustomerService, GetCustomerService getCustomerService) {
+    public CustomerController(CreateCustomerService createCustomerService, GetCustomerService getCustomerService,
+            UpdateCustomerService updateCustomerService) {
         this.createCustomerService = createCustomerService;
         this.getCustomerService = getCustomerService;
+        this.updateCustomerService = updateCustomerService;
     }
 
     @PostMapping
@@ -47,6 +52,13 @@ public class CustomerController {
         Customer customer = getCustomerService.execute(customerId);
 
         return toResponse(customer);
+    }
+
+    @PatchMapping("{customerId}")
+    public ResponseEntity<CustomerResponse> patch(@PathVariable("customerId") UUID customerId,
+            @RequestBody UpdateCustomerRequest request) {
+        Customer customer = updateCustomerService.execute(customerId, request);
+        return ResponseEntity.ok(toResponse(customer));
     }
 
     private CustomerResponse toResponse(Customer customer) {
