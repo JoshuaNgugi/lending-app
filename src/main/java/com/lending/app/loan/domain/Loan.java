@@ -18,6 +18,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -51,6 +52,9 @@ public class Loan {
 
     @Column(name = "maturity_date")
     private LocalDate maturityDate;
+
+    @OneToOne(mappedBy = "loan", fetch = FetchType.LAZY)
+    private LoanTerms loanTerms;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
@@ -105,6 +109,14 @@ public class Loan {
         return maturityDate;
     }
 
+    public void setLoanTerms(LoanTerms loanTerms) {
+        this.loanTerms = loanTerms;
+    }
+
+    public LoanTerms getLoanTerms() {
+        return loanTerms;
+    }
+
     public Instant getCreatedAt() {
         return createdAt;
     }
@@ -113,7 +125,7 @@ public class Loan {
         return updatedAt;
     }
 
-    public void disburse(LocalDate disbursementDate) {
+    public void disburse(LocalDate disbursementDate, LocalDate maturityDate) {
 
         if (status != LoanStatus.CREATED) {
             throw new IllegalStateException("Only CREATED loans can be disbursed");
@@ -121,6 +133,7 @@ public class Loan {
 
         this.disbursementDate = disbursementDate;
         this.originationDate = disbursementDate;
+        this.maturityDate = maturityDate;
         this.status = LoanStatus.OPEN;
         this.updatedAt = Instant.now();
     }
