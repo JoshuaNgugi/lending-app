@@ -3,7 +3,6 @@ package com.lending.app.product.domain;
 import java.math.BigDecimal;
 import java.util.UUID;
 
-import com.lending.app.product.api.ProductFeeRequest;
 import com.lending.app.product.exception.InvalidProductException;
 
 import jakarta.persistence.Column;

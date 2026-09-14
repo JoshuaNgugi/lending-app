@@ -142,4 +142,28 @@ public class LoanProduct {
         return updatedAt;
     }
 
+    public void update(
+            String name,
+            String description,
+            Integer tenureValue,
+            TenureUnit tenureUnit,
+            LoanStructure structure,
+            BillingMode billingMode,
+            Integer billingDay,
+            Integer gracePeriodDays) {
+        this.name = name;
+        this.description = description;
+        this.tenureValue = tenureValue;
+        this.tenureUnit = tenureUnit;
+        this.structure = structure;
+        this.billingMode = billingMode;
+        this.billingDay = billingDay;
+        this.gracePeriodDays = gracePeriodDays;
+        this.updatedAt = Instant.now();
+    }
+
+    public void deactivate() {
+        this.status = ProductStatus.INACTIVE;
+        this.updatedAt = Instant.now();
+    }
 }

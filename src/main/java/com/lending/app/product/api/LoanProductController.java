@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,7 +14,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.lending.app.product.application.CreateLoanProductService;
+import com.lending.app.product.application.DeactivateLoanProductService;
 import com.lending.app.product.application.GetLoanProductService;
+import com.lending.app.product.application.UpdateLoanProductService;
 import com.lending.app.product.domain.LoanProduct;
 
 import jakarta.validation.Valid;
@@ -23,12 +26,16 @@ import jakarta.validation.Valid;
 public class LoanProductController {
     private final GetLoanProductService getLoanProductService;
     private final CreateLoanProductService createLoanProductService;
+    private final UpdateLoanProductService updateLoanProductService;
+    private final DeactivateLoanProductService deactivateLoanProductService;
 
     public LoanProductController(GetLoanProductService getLoanProductService,
-            CreateLoanProductService createLoanProductService) {
+            CreateLoanProductService createLoanProductService, UpdateLoanProductService updateLoanProductService,
+            DeactivateLoanProductService deactivateLoanProductService) {
         this.getLoanProductService = getLoanProductService;
         this.createLoanProductService = createLoanProductService;
-
+        this.updateLoanProductService = updateLoanProductService;
+        this.deactivateLoanProductService = deactivateLoanProductService;
     }
 
     @GetMapping("/{productId}")
@@ -49,6 +56,23 @@ public class LoanProductController {
         LoanProduct product = createLoanProductService.execute(request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(product));
+    }
+
+    @PatchMapping("/{productId}")
+    public LoanProductResponse update(@PathVariable("productId") UUID productId,
+            @Valid @RequestBody UpdateLoanProductRequest request) {
+        LoanProduct product = updateLoanProductService.execute(productId, request);
+
+        return toResponse(product);
+    }
+
+    @PostMapping("/{productId}/deactivate")
+    public LoanProductResponse deactivate(
+            @PathVariable("productId") UUID productId) {
+
+        LoanProduct product = deactivateLoanProductService.execute(productId);
+
+        return toResponse(product);
     }
 
     private LoanProductResponse toResponse(LoanProduct product) {

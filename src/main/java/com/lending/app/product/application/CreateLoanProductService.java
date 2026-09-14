@@ -4,6 +4,9 @@ import org.springframework.stereotype.Service;
 
 import com.lending.app.product.api.CreateLoanProductRequest;
 import com.lending.app.product.api.ProductFeeRequest;
+import com.lending.app.product.domain.BillingMode;
+import com.lending.app.product.domain.FeeApplicationTiming;
+import com.lending.app.product.domain.FeeType;
 import com.lending.app.product.domain.LoanProduct;
 import com.lending.app.product.domain.ProductFee;
 import com.lending.app.product.exception.ProductAlreadyExistsException;
@@ -16,19 +19,21 @@ import jakarta.transaction.Transactional;
 @Transactional
 public class CreateLoanProductService {
 
-    private final LoanProductRepository productRepository;
-    private final ProductFeeRepository feeRepository;
+    private final LoanProductRepository loanProductRepository;
+    private final ProductFeeRepository productFeeRepository;
 
     public CreateLoanProductService(
-            LoanProductRepository productRepository,
-            ProductFeeRepository feeRepository) {
-        this.productRepository = productRepository;
-        this.feeRepository = feeRepository;
+            LoanProductRepository loanProductRepository,
+            ProductFeeRepository productFeeRepository) {
+        this.loanProductRepository = loanProductRepository;
+        this.productFeeRepository = productFeeRepository;
     }
 
     public LoanProduct execute(CreateLoanProductRequest request) {
 
-        if (productRepository.existsByCodeIgnoreCase(request.code())) {
+        validate(request);
+
+        if (loanProductRepository.existsByCodeIgnoreCase(request.code())) {
             throw new ProductAlreadyExistsException("Product with code already exists");
         }
 
@@ -43,7 +48,7 @@ public class CreateLoanProductService {
                 request.billingDay(),
                 request.gracePeriodDays());
 
-        LoanProduct saved = productRepository.save(product);
+        LoanProduct saved = loanProductRepository.save(product);
 
         if (request.fees() != null) {
             for (ProductFeeRequest feeRequest : request.fees()) {
@@ -55,11 +60,44 @@ public class CreateLoanProductService {
                         feeRequest.triggerDays());
 
                 fee.setProduct(saved);
-                feeRepository.save(fee);
+                productFeeRepository.save(fee);
             }
         }
 
         return saved;
     }
 
+    private void validate(CreateLoanProductRequest request) {
+
+        if (request.billingMode() == BillingMode.CONSOLIDATED
+                && request.billingDay() == null) {
+            throw new IllegalArgumentException(
+                    "Billing day is required for consolidated billing");
+        }
+
+        if (request.billingMode() == BillingMode.INDIVIDUAL
+                && request.billingDay() != null) {
+            throw new IllegalArgumentException(
+                    "Billing day must not be provided for individual billing");
+        }
+
+        if (request.fees() == null) {
+            return;
+        }
+
+        for (ProductFeeRequest fee : request.fees()) {
+
+            if (fee.feeType() == FeeType.LATE
+                    && fee.applicationTiming() != FeeApplicationTiming.AFTER_DUE_DATE) {
+                throw new IllegalArgumentException(
+                        "Late fees must be applied after the due date");
+            }
+
+            if (fee.feeType() == FeeType.LATE
+                    && fee.triggerDays() == null) {
+                throw new IllegalArgumentException(
+                        "Late fees require trigger days");
+            }
+        }
+    }
 }
