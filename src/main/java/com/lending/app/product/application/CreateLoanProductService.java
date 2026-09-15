@@ -8,6 +8,7 @@ import com.lending.app.product.domain.BillingMode;
 import com.lending.app.product.domain.FeeApplicationTiming;
 import com.lending.app.product.domain.FeeType;
 import com.lending.app.product.domain.LoanProduct;
+import com.lending.app.product.domain.LoanStructure;
 import com.lending.app.product.domain.ProductFee;
 import com.lending.app.product.exception.ProductAlreadyExistsException;
 import com.lending.app.product.repository.LoanProductRepository;
@@ -46,7 +47,8 @@ public class CreateLoanProductService {
                 request.structure(),
                 request.billingMode(),
                 request.billingDay(),
-                request.gracePeriodDays());
+                request.gracePeriodDays(),
+                request.installmentCount());
 
         LoanProduct saved = loanProductRepository.save(product);
 
@@ -71,14 +73,24 @@ public class CreateLoanProductService {
 
         if (request.billingMode() == BillingMode.CONSOLIDATED
                 && request.billingDay() == null) {
-            throw new IllegalArgumentException(
-                    "Billing day is required for consolidated billing");
+            throw new IllegalArgumentException("Billing day is required for consolidated billing");
         }
 
         if (request.billingMode() == BillingMode.INDIVIDUAL
                 && request.billingDay() != null) {
-            throw new IllegalArgumentException(
-                    "Billing day must not be provided for individual billing");
+            throw new IllegalArgumentException("Billing day must not be provided for individual billing");
+        }
+
+        if (request.structure() == LoanStructure.INSTALLMENT
+                && request.installmentCount() == null) {
+
+            throw new IllegalArgumentException("Installment count is required for installment loans");
+        }
+
+        if (request.structure() == LoanStructure.LUMP_SUM
+                && request.installmentCount() != null) {
+
+            throw new IllegalArgumentException("Installment count must not be provided for lump-sum loans");
         }
 
         if (request.fees() == null) {

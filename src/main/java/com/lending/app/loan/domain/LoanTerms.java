@@ -51,6 +51,9 @@ public class LoanTerms {
     @Column(name = "grace_period_days", nullable = false)
     private Integer gracePeriodDays;
 
+    @Column(name = "installment_count")
+    private Integer installmentCount;
+
     protected LoanTerms() {
     }
 
@@ -98,4 +101,13 @@ public class LoanTerms {
     public Integer getGracePeriodDays() {
         return gracePeriodDays;
     }
+
+    public Loan getLoan() {
+        return loan;
+    }
+
+    public Integer getInstallmentCount() {
+        return installmentCount;
+    }
+
 }

@@ -23,6 +23,7 @@ import com.lending.app.product.domain.LoanProduct;
 import com.lending.app.product.domain.ProductFee;
 import com.lending.app.product.domain.ProductStatus;
 import com.lending.app.product.repository.ProductFeeRepository;
+import com.lending.app.repayment_schedule.application.CreateRepaymentScheduleService;
 import com.lending.app.shared.exception.ResourceNotFoundException;
 
 import jakarta.transaction.Transactional;
@@ -38,6 +39,7 @@ public class DisburseLoanService {
     private final LoanFeeRepository loanFeeRepository;
     private final LoanMaturityCalculator maturityCalculator;
     private final LoanFeeCalculator feeCalculator;
+    private final CreateRepaymentScheduleService createRepaymentScheduleService;
 
     public DisburseLoanService(
             LoanRepository loanRepository,
@@ -46,7 +48,8 @@ public class DisburseLoanService {
             LoanTermFeeRepository loanTermFeeRepository,
             LoanFeeRepository loanFeeRepository,
             LoanMaturityCalculator maturityCalculator,
-            LoanFeeCalculator feeCalculator) {
+            LoanFeeCalculator feeCalculator,
+            CreateRepaymentScheduleService createRepaymentScheduleService) {
         this.loanRepository = loanRepository;
         this.productFeeRepository = productFeeRepository;
         this.loanTermsRepository = loanTermsRepository;
@@ -54,6 +57,7 @@ public class DisburseLoanService {
         this.loanFeeRepository = loanFeeRepository;
         this.maturityCalculator = maturityCalculator;
         this.feeCalculator = feeCalculator;
+        this.createRepaymentScheduleService = createRepaymentScheduleService;
     }
 
     public Loan execute(UUID loanId) {
@@ -96,6 +100,8 @@ public class DisburseLoanService {
                 terms.getTenureUnit());
 
         loan.disburse(disbursementDate, maturityDate);
+
+        createRepaymentScheduleService.execute(loan, terms);
 
         for (LoanTermFee termFee : getTermFees(terms.getId())) {
 

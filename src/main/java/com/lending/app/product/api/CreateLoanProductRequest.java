@@ -16,23 +16,25 @@ import jakarta.validation.constraints.PositiveOrZero;
 
 public record CreateLoanProductRequest(
 
-        @NotBlank String code,
+                @NotBlank String code,
 
-        @NotBlank String name,
+                @NotBlank String name,
 
-        String description,
+                String description,
 
-        @NotNull @Positive Integer tenureValue,
+                @NotNull @Positive Integer tenureValue,
 
-        @NotNull TenureUnit tenureUnit,
+                @NotNull TenureUnit tenureUnit,
 
-        @NotNull LoanStructure structure,
+                @NotNull LoanStructure structure,
 
-        @NotNull BillingMode billingMode,
+                @NotNull BillingMode billingMode,
 
-        @Min(1) @Max(28) Integer billingDay,
+                @Min(1) @Max(28) Integer billingDay,
 
-        @NotNull @PositiveOrZero Integer gracePeriodDays,
+                @NotNull @PositiveOrZero Integer gracePeriodDays,
 
-        List<@Valid ProductFeeRequest> fees) {
+                List<@Valid ProductFeeRequest> fees,
+
+                @Positive Integer installmentCount) {
 }

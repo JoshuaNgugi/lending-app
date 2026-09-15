@@ -57,6 +57,9 @@ public class LoanProduct {
     @Column(name = "grace_period_days", nullable = false)
     private Integer gracePeriodDays;
 
+    @Column(name = "installment_count")
+    private Integer installmentCount;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
@@ -75,7 +78,8 @@ public class LoanProduct {
             LoanStructure structure,
             BillingMode billingMode,
             Integer billingDay,
-            Integer gracePeriodDays) {
+            Integer gracePeriodDays,
+            Integer installmentCount) {
         this.code = code;
         this.name = name;
         this.description = description;
@@ -86,6 +90,7 @@ public class LoanProduct {
         this.billingDay = billingDay;
         this.gracePeriodDays = gracePeriodDays;
         this.status = ProductStatus.ACTIVE;
+        this.installmentCount = installmentCount;
         this.createdAt = Instant.now();
         this.updatedAt = Instant.now();
     }
@@ -132,6 +137,10 @@ public class LoanProduct {
 
     public Integer getGracePeriodDays() {
         return gracePeriodDays;
+    }
+
+    public Integer getInstallmentCount() {
+        return installmentCount;
     }
 
     public Instant getCreatedAt() {

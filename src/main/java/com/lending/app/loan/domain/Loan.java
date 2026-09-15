@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import com.lending.app.customer.domain.Customer;
 import com.lending.app.product.domain.LoanProduct;
+import com.lending.app.repayment_schedule.domain.RepaymentSchedule;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -61,6 +62,9 @@ public class Loan {
 
     @Column(name = "updated_at")
     private Instant updatedAt;
+
+    @OneToOne(mappedBy = "loan", fetch = FetchType.LAZY)
+    private RepaymentSchedule repaymentSchedule;
 
     protected Loan() {
     }
@@ -123,6 +127,14 @@ public class Loan {
 
     public Instant getUpdatedAt() {
         return updatedAt;
+    }
+
+    public void setRepaymentSchedule(RepaymentSchedule repaymentSchedule) {
+        this.repaymentSchedule = repaymentSchedule;
+    }
+
+    public RepaymentSchedule getRepaymentSchedule() {
+        return repaymentSchedule;
     }
 
     public void disburse(LocalDate disbursementDate, LocalDate maturityDate) {
