@@ -87,4 +87,25 @@ public class Installment {
     public InstallmentStatus getStatus() {
         return status;
     }
+
+    public BigDecimal getOutstandingPrincipal() {
+        return principalDue.subtract(principalPaid);
+    }
+
+    public void allocatePrincipal(BigDecimal amount) {
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Amount must be greater than zero");
+        }
+
+        if (amount.compareTo(getOutstandingPrincipal()) > 0) {
+            throw new IllegalArgumentException("Amount exceeds outstanding principal");
+        }
+        principalPaid = principalPaid.add(amount);
+
+        if (principalPaid.compareTo(principalDue) == 0) {
+            status = InstallmentStatus.PAID;
+        } else {
+            status = InstallmentStatus.PARTIALLY_PAID;
+        }
+    }
 }

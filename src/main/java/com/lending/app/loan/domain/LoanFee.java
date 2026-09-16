@@ -53,6 +53,9 @@ public class LoanFee {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
+    @Column(name = "amount_paid", nullable = false, precision = 19, scale = 2)
+    private BigDecimal amountPaid;
+
     protected LoanFee() {
     }
 
@@ -72,6 +75,7 @@ public class LoanFee {
         this.reference = reference;
         this.reason = reason;
         this.createdAt = Instant.now();
+        this.amountPaid = BigDecimal.ZERO;
     }
 
     public BigDecimal getAmount() {
@@ -80,5 +84,23 @@ public class LoanFee {
 
     public FeeType getFeeType() {
         return feeType;
+    }
+
+    public BigDecimal getOutstandingAmount() {
+        return amount.subtract(amountPaid);
+    }
+
+    public void allocatePayment(BigDecimal payment) {
+        BigDecimal outstanding = getOutstandingAmount();
+
+        if (payment.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Payment must be greater than zero");
+        }
+
+        if (payment.compareTo(outstanding) > 0) {
+            throw new IllegalArgumentException("Payment exceeds outstanding fee");
+        }
+
+        this.amountPaid = this.amountPaid.add(payment);
     }
 }
