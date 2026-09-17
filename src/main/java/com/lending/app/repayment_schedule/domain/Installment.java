@@ -108,4 +108,13 @@ public class Installment {
             status = InstallmentStatus.PARTIALLY_PAID;
         }
     }
+
+    public void markOverdue() {
+
+        if (status == InstallmentStatus.PAID) {
+            throw new IllegalStateException("Paid installments cannot be marked overdue");
+        }
+
+        this.status = InstallmentStatus.OVERDUE;
+    }
 }

@@ -168,4 +168,13 @@ public class Loan {
         this.status = LoanStatus.CLOSED;
         this.updatedAt = Instant.now();
     }
+
+    public void markOverdue() {
+        if (status != LoanStatus.OPEN) {
+            throw new IllegalStateException("Only open loans can be marked as overdue");
+        }
+
+        this.status = LoanStatus.OVERDUE;
+        this.updatedAt = Instant.now();
+    }
 }

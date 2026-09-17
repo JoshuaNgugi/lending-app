@@ -11,12 +11,14 @@ import com.lending.app.loan.domain.LoanFee;
 
 public interface LoanFeeRepository extends JpaRepository<LoanFee, UUID> {
 
-    @Query("""
-                SELECT f
-                FROM LoanFee f
-                WHERE f.loan.id = :loanId
-                  AND f.amountPaid < f.amount
-                ORDER BY f.appliedDate ASC, f.createdAt ASC
-            """)
-    List<LoanFee> findOutstandingFees(@Param("loanId") UUID loanId);
+  @Query("""
+          SELECT f
+          FROM LoanFee f
+          WHERE f.loan.id = :loanId
+            AND f.amountPaid < f.amount
+          ORDER BY f.appliedDate ASC, f.createdAt ASC
+      """)
+  List<LoanFee> findOutstandingFees(@Param("loanId") UUID loanId);
+
+  boolean existsByReference(String reference);
 }
