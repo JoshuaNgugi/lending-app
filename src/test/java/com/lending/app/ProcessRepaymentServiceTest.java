@@ -2,7 +2,11 @@ package com.lending.app;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
@@ -26,14 +30,13 @@ import com.lending.app.loan.repository.LoanRepository;
 import com.lending.app.product.domain.FeeType;
 import com.lending.app.product.domain.ProcessRepaymentService;
 import com.lending.app.repayment.domain.Repayment;
+import com.lending.app.repayment.domain.RepaymentAllocation;
 import com.lending.app.repayment.repayment.RepaymentAllocationRepository;
 import com.lending.app.repayment.repayment.RepaymentRepository;
 import com.lending.app.repayment_schedule.domain.Installment;
 import com.lending.app.repayment_schedule.domain.InstallmentStatus;
 import com.lending.app.repayment_schedule.domain.RepaymentSchedule;
 import com.lending.app.repayment_schedule.repository.InstallmentRepository;
-
-import jakarta.persistence.criteria.CriteriaBuilder.In;
 
 @ExtendWith(MockitoExtension.class)
 public class ProcessRepaymentServiceTest {
@@ -72,6 +75,9 @@ public class ProcessRepaymentServiceTest {
         loan.setRepaymentSchedule(repaymentSchedule);
     }
 
+    /**
+     * Test to ensure that a partial repayment is processed correctly.
+     */
     @Test
     void shouldProcessPartialRepayment() {
 
@@ -106,6 +112,10 @@ public class ProcessRepaymentServiceTest {
         assertEquals(LoanStatus.OPEN, loan.getStatus());
     }
 
+    /**
+     * Test to ensure that fees are allocated before principal when processing a
+     * repayment.
+     */
     @Test
     void shouldAllocateFeesBeforePrincipal() {
         LoanFee fee = new LoanFee(loan, FeeType.SERVICE, new BigDecimal("500.00"),
@@ -142,5 +152,29 @@ public class ProcessRepaymentServiceTest {
         assertEquals(InstallmentStatus.PARTIALLY_PAID, installment2.getStatus());
 
         assertEquals(LoanStatus.OPEN, loan.getStatus());
+
+        // Verify that the repayment allocations were created correctly
+        var allocationCaptor = org.mockito.ArgumentCaptor.forClass(RepaymentAllocation.class);
+
+        verify(repaymentAllocationRepository, times(3))
+                .save(allocationCaptor.capture());
+
+        List<RepaymentAllocation> allocations = allocationCaptor.getAllValues();
+
+        assertEquals(3, allocations.size());
+
+        assertEquals(new BigDecimal("500.00"), allocations.get(0).getAmount());
+
+        assertSame(fee, allocations.get(0).getLoanFee());
+
+        assertNull(allocations.get(0).getInstallment());
+
+        assertEquals(new BigDecimal("3333.33"), allocations.get(1).getAmount());
+
+        assertSame(installment1, allocations.get(1).getInstallment());
+
+        assertEquals(new BigDecimal("166.67"), allocations.get(2).getAmount());
+
+        assertSame(installment2, allocations.get(2).getInstallment());
     }
 }
