@@ -82,7 +82,11 @@ public class ProcessRepaymentService {
 
         remainingAmount = allocateFees(repayment, outstandingFees, remainingAmount);
 
-        allocatePrincipal(repayment, outstandingInstallments, remainingAmount);
+        remainingAmount = allocatePrincipal(repayment, outstandingInstallments, remainingAmount);
+
+        if (remainingAmount.compareTo(BigDecimal.ZERO) > 0) {
+            throw new IllegalStateException("Unable to allocate full repayment amount");
+        }
 
         updateLoanStatus(loan, outstandingFees, outstandingInstallments);
 
@@ -136,7 +140,8 @@ public class ProcessRepaymentService {
         return remainingAmount;
     }
 
-    private void allocatePrincipal(Repayment repayment, List<Installment> installments, BigDecimal remainingAmount) {
+    private BigDecimal allocatePrincipal(Repayment repayment, List<Installment> installments,
+            BigDecimal remainingAmount) {
         for (Installment installment : installments) {
             if (remainingAmount.compareTo(BigDecimal.ZERO) <= 0) {
                 break;
@@ -156,6 +161,7 @@ public class ProcessRepaymentService {
 
             remainingAmount = remainingAmount.subtract(allocation);
         }
+        return remainingAmount;
     }
 
     private void updateLoanStatus(Loan loan, List<LoanFee> fees, List<Installment> installments) {
