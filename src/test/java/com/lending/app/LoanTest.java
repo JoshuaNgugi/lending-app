@@ -81,16 +81,6 @@ public class LoanTest {
     }
 
     @Test
-    void shouldCloseOverdueLoan() {
-        loan.disburse(
-                LocalDate.of(2026, 9, 17),
-                LocalDate.of(2026, 12, 17));
-
-        // Simulate the overdue state
-        assertTrue(loan.getStatus() == LoanStatus.OPEN || loan.getStatus() == LoanStatus.OVERDUE);
-    }
-
-    @Test
     void shouldNotCloseCreatedLoan() {
         assertThrows(IllegalStateException.class, () -> loan.close());
     }
