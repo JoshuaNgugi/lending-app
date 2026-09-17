@@ -55,7 +55,7 @@ public class ProcessRepaymentService {
         validateLoan(loan);
 
         if (repaymentRepository.existsByReference(reference)) {
-            throw new ResourceNotFoundException("Repayment with reference: " + reference + " already exists");
+            throw new IllegalStateException("Repayment with reference: " + reference + " already exists");
         }
 
         RepaymentSchedule schedule = loan.getRepaymentSchedule();

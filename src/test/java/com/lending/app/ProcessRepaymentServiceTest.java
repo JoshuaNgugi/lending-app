@@ -4,9 +4,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
@@ -37,6 +40,7 @@ import com.lending.app.repayment_schedule.domain.Installment;
 import com.lending.app.repayment_schedule.domain.InstallmentStatus;
 import com.lending.app.repayment_schedule.domain.RepaymentSchedule;
 import com.lending.app.repayment_schedule.repository.InstallmentRepository;
+import com.lending.app.shared.exception.ResourceNotFoundException;
 
 @ExtendWith(MockitoExtension.class)
 public class ProcessRepaymentServiceTest {
@@ -176,5 +180,153 @@ public class ProcessRepaymentServiceTest {
         assertEquals(new BigDecimal("166.67"), allocations.get(2).getAmount());
 
         assertSame(installment2, allocations.get(2).getInstallment());
+    }
+
+    /**
+     * Test to ensure that the loan is closed when all outstanding amounts are paid.
+     */
+    @Test
+    void shouldCloseLoanWhenAllOutstandingAmountsArePaid() {
+        Installment installment = new Installment(repaymentSchedule, 1,
+                LocalDate.of(2026, 10, 17), new BigDecimal("1000.00"));
+
+        when(loanRepository.findById(loanId)).thenReturn(Optional.of(loan));
+
+        when(repaymentRepository.existsByReference("PAY-003")).thenReturn(false);
+
+        when(loanFeeRepository.findOutstandingFees(loanId)).thenReturn(List.of());
+
+        when(installmentRepository.findOutstandingInstallments(repaymentSchedule.getId()))
+                .thenReturn(List.of(installment));
+
+        when(repaymentRepository.save(any(Repayment.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        processRepaymentService.execute(loanId, new BigDecimal("1000.00"), "PAY-003", "MPESA");
+
+        assertEquals(InstallmentStatus.PAID, installment.getStatus());
+        assertEquals(new BigDecimal("1000.00"), installment.getPrincipalPaid());
+        assertEquals(LoanStatus.CLOSED, loan.getStatus());
+        verify(loanRepository).save(loan);
+    }
+
+    /**
+     * Test to ensure that an overpayment is rejected and does not affect the
+     * installment or loan status.
+     */
+    @Test
+    void shouldRejectOverPayment() {
+        Installment installment = new Installment(repaymentSchedule, 1,
+                LocalDate.of(2026, 10, 17), new BigDecimal("1000.00"));
+
+        when(loanRepository.findById(loanId)).thenReturn(Optional.of(loan));
+
+        when(repaymentRepository.existsByReference("PAY-004")).thenReturn(false);
+
+        when(loanFeeRepository.findOutstandingFees(loanId)).thenReturn(List.of());
+
+        when(installmentRepository.findOutstandingInstallments(repaymentSchedule.getId()))
+                .thenReturn(List.of(installment));
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            processRepaymentService.execute(loanId, new BigDecimal("1500.00"), "PAY-004", "MPESA");
+        });
+
+        // Verify that no repayment was saved due to the overpayment
+        verify(repaymentRepository, never()).save(any(Repayment.class));
+
+        assertEquals(BigDecimal.ZERO, installment.getPrincipalPaid());
+    }
+
+    /**
+     * Test to ensure that a repayment with a duplicate reference is rejected.
+     */
+    @Test
+    void shouldRejectDuplicateRepaymentReference() {
+        when(loanRepository.findById(loanId)).thenReturn(Optional.of(loan));
+
+        when(repaymentRepository.existsByReference("PAY-005")).thenReturn(true);
+
+        assertThrows(IllegalStateException.class, () -> {
+            processRepaymentService.execute(loanId, new BigDecimal("500.00"), "PAY-005", "MPESA");
+        });
+
+        // Verify that no repayment was saved due to the duplicate reference
+        verify(repaymentRepository, never()).save(any(Repayment.class));
+
+        // Verify that no fees were allocated due to the duplicate reference
+        verify(loanFeeRepository, never()).findOutstandingFees(any(UUID.class));
+
+        // Verify that no installments were allocated due to the duplicate reference
+        verify(installmentRepository, never()).findOutstandingInstallments(any(UUID.class));
+    }
+
+    /**
+     * Test to ensure that a repayment for a closed loan is rejected.
+     */
+    @Test
+    void shouldRejectRepaymentForClosedLoan() {
+
+        loan.close();
+
+        when(loanRepository.findById(loanId)).thenReturn(Optional.of(loan));
+
+        assertThrows(IllegalStateException.class, () -> {
+            processRepaymentService.execute(loanId, new BigDecimal("500.00"), "PAY-006", "MPESA");
+        });
+
+        // Verify that no repayment was saved due to the closed loan
+        verify(repaymentRepository, never()).save(any(Repayment.class));
+    }
+
+    /**
+     * Test to ensure that a repayment for a non-existent loan is rejected.
+     */
+    @Test
+    void shouldRejectRepaymentForNonExistentLoan() {
+        when(loanRepository.findById(loanId)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> {
+            processRepaymentService.execute(loanId, new BigDecimal("500.00"), "PAY-007", "MPESA");
+        });
+
+        // Verify that no repayment was saved due to the non-existent loan
+        verify(repaymentRepository, never()).save(any(Repayment.class));
+    }
+
+    /**
+     * Test to ensure that a repayment with zero amount is rejected.
+     */
+    @Test
+    void shouldRejectZeroRepayment() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            processRepaymentService.execute(loanId, BigDecimal.ZERO, "PAY-008", "MPESA");
+        });
+
+        verifyNoInteractions(loanRepository);
+    }
+
+    /**
+     * Test to ensure that a repayment with negative amount is rejected.
+     */
+    @Test
+    void shouldRejectNegativeRepayment() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            processRepaymentService.execute(loanId, new BigDecimal("-100.00"), "PAY-009", "MPESA");
+        });
+
+        verifyNoInteractions(loanRepository);
+    }
+
+    /**
+     * Test to ensure that a repayment with null amount is rejected.
+     */
+    @Test
+    void shouldRejectNullRepayment() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            processRepaymentService.execute(loanId, null, "PAY-010", "MPESA");
+        });
+
+        verifyNoInteractions(loanRepository);
     }
 }
