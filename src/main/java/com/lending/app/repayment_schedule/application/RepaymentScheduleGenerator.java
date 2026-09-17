@@ -33,7 +33,13 @@ public class RepaymentScheduleGenerator {
     }
 
     private List<InstallmentData> generateInstallments(Loan loan, LoanTerms terms) {
-        int numberOfInstallments = terms.getInstallmentCount();
+        Integer installmentCount = terms.getInstallmentCount();
+
+        if (terms.getStructure() == LoanStructure.INSTALLMENT && installmentCount == null) {
+            throw new IllegalStateException("Installment count is required for installment loans");
+        }
+
+        int numberOfInstallments = terms.getStructure() == LoanStructure.LUMP_SUM ? 1 : installmentCount;
 
         BigDecimal principal = loan.getPrincipal();
 
@@ -41,11 +47,11 @@ public class RepaymentScheduleGenerator {
 
         BigDecimal totalBase = baseAmount.multiply(BigDecimal.valueOf(numberOfInstallments));
 
-        BigDecimal finalAmount = principal.subtract(totalBase);
+        BigDecimal finalAmount = baseAmount.add(principal.subtract(totalBase));
 
         List<InstallmentData> installments = new ArrayList<>();
 
-        for (int i = 0; i <= numberOfInstallments; i++) {
+        for (int i = 1; i <= numberOfInstallments; i++) {
             BigDecimal amount = i == numberOfInstallments ? finalAmount : baseAmount;
 
             LocalDate duDate = calculateDueDate(loan, terms, i, numberOfInstallments);

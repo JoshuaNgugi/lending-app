@@ -83,7 +83,8 @@ public class DisburseLoanService {
         LocalDate disbursementDate = LocalDate.now();
 
         LoanTerms terms = new LoanTerms(loan, product.getTenureValue(), product.getTenureUnit(), product.getStructure(),
-                product.getBillingMode(), product.getBillingDay(), product.getGracePeriodDays());
+                product.getBillingMode(), product.getBillingDay(), product.getGracePeriodDays(),
+                product.getInstallmentCount());
 
         loanTermsRepository.save(terms);
 

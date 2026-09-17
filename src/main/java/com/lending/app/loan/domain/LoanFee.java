@@ -103,4 +103,36 @@ public class LoanFee {
 
         this.amountPaid = this.amountPaid.add(payment);
     }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public Loan getLoan() {
+        return loan;
+    }
+
+    public LocalDate getAppliedDate() {
+        return appliedDate;
+    }
+
+    public LocalDate getReferenceDate() {
+        return referenceDate;
+    }
+
+    public String getReference() {
+        return reference;
+    }
+
+    public String getReason() {
+        return reason;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public BigDecimal getAmountPaid() {
+        return amountPaid;
+    }
 }

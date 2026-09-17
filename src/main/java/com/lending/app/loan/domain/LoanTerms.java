@@ -64,7 +64,8 @@ public class LoanTerms {
             LoanStructure structure,
             BillingMode billingMode,
             Integer billingDay,
-            Integer gracePeriodDays) {
+            Integer gracePeriodDays,
+            Integer installmentCount) {
         this.loan = loan;
         this.tenureValue = tenureValue;
         this.tenureUnit = tenureUnit;
@@ -72,6 +73,7 @@ public class LoanTerms {
         this.billingMode = billingMode;
         this.billingDay = billingDay;
         this.gracePeriodDays = gracePeriodDays;
+        this.installmentCount = installmentCount;
     }
 
     public UUID getId() {
