@@ -159,4 +159,13 @@ public class Loan {
         this.status = LoanStatus.CANCELLED;
         this.updatedAt = Instant.now();
     }
+
+    public void close() {
+        if (status != LoanStatus.OPEN && status != LoanStatus.OVERDUE) {
+            throw new IllegalStateException("Only open or overdue loans can be closed");
+        }
+
+        this.status = LoanStatus.CLOSED;
+        this.updatedAt = Instant.now();
+    }
 }

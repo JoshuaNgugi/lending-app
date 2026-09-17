@@ -3,6 +3,7 @@ package com.lending.app.repayment.domain;
 import java.math.BigDecimal;
 import java.util.UUID;
 
+import com.lending.app.loan.domain.LoanFee;
 import com.lending.app.repayment_schedule.domain.Installment;
 
 import jakarta.persistence.Column;
@@ -15,6 +16,15 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
+/**
+ * A repayment says "customer paid KES 4,000"
+ * 
+ * A Repayment Allocation says "Of that KES 4,000 this much was applied to this
+ * obligation"
+ * 
+ * Every repayment allocation points to exacty on thing: either a Loan Fee or an
+ * Installment
+ */
 @Entity
 @Table(name = "repayment_allocations")
 public class RepaymentAllocation {
@@ -27,15 +37,16 @@ public class RepaymentAllocation {
     @JoinColumn(name = "repayment_id", nullable = false)
     private Repayment repayment;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "installment_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "installment_id")
     private Installment installment;
 
-    @Column(name = "fee_amount", nullable = false, precision = 19, scale = 2)
-    private BigDecimal feeAmount;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "loan_fee_id")
+    private LoanFee loanFee;
 
-    @Column(name = "principal_amount", nullable = false, precision = 19, scale = 2)
-    private BigDecimal principalAmount;
+    @Column(nullable = false, precision = 19, scale = 2)
+    private BigDecimal amount;
 
     protected RepaymentAllocation() {
     }
@@ -43,11 +54,32 @@ public class RepaymentAllocation {
     public RepaymentAllocation(
             Repayment repayment,
             Installment installment,
-            BigDecimal feeAmount,
-            BigDecimal principalAmount) {
+            LoanFee loanFee,
+            BigDecimal amount) {
         this.repayment = repayment;
         this.installment = installment;
-        this.feeAmount = feeAmount;
-        this.principalAmount = principalAmount;
+        this.loanFee = loanFee;
+        this.amount = amount;
     }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public Repayment getRepayment() {
+        return repayment;
+    }
+
+    public Installment getInstallment() {
+        return installment;
+    }
+
+    public LoanFee getLoanFee() {
+        return loanFee;
+    }
+
+    public BigDecimal getAmount() {
+        return amount;
+    }
+
 }
