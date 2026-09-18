@@ -2,6 +2,7 @@ package com.lending.app.loan.application;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -13,9 +14,9 @@ import com.lending.app.loan.domain.LoanTermFee;
 import com.lending.app.loan.domain.LoanTerms;
 import com.lending.app.loan.repository.LoanFeeRepository;
 import com.lending.app.loan.repository.LoanRepository;
-import com.lending.app.loan.repository.LoanTermFeeRepository;
 import com.lending.app.product.domain.FeeType;
 import com.lending.app.repayment_schedule.domain.Installment;
+import com.lending.app.repayment_schedule.domain.InstallmentStatus;
 import com.lending.app.repayment_schedule.domain.RepaymentSchedule;
 import com.lending.app.repayment_schedule.repository.InstallmentRepository;
 
@@ -25,20 +26,17 @@ public class OverdueLoanSweepService {
 
     private final LoanRepository loanRepository;
     private final InstallmentRepository installmentRepository;
-    private final LoanTermFeeRepository loanTermFeeRepository;
     private final LoanFeeRepository loanFeeRepository;
     private final LoanFeeCalculator loanFeeCalculator;
 
     public OverdueLoanSweepService(
             LoanRepository loanRepository,
             InstallmentRepository installmentRepository,
-            LoanTermFeeRepository loanTermFeeRepository,
             LoanFeeRepository loanFeeRepository,
             LoanFeeCalculator loanFeeCalculator) {
 
         this.loanRepository = loanRepository;
         this.installmentRepository = installmentRepository;
-        this.loanTermFeeRepository = loanTermFeeRepository;
         this.loanFeeRepository = loanFeeRepository;
         this.loanFeeCalculator = loanFeeCalculator;
     }
@@ -72,24 +70,25 @@ public class OverdueLoanSweepService {
         boolean overdue = false;
 
         for (Installment installment : installments) {
-            if (isOverdue(installment, terms.getGracePeriodDays(), today)) {
 
+            if (!isOverdue(installment, terms.getGracePeriodDays(), today)) {
+                continue;
+            }
+
+            if (installment.getStatus() != InstallmentStatus.OVERDUE) {
                 installment.markOverdue();
                 installmentRepository.save(installment);
-
-                overdue = true;
             }
+
+            overdue = true;
+
+            applyLateFees(loan, installment, terms, today);
         }
 
-        if (!overdue) {
-            return;
+        if (overdue) {
+            loan.markOverdue();
+            loanRepository.save(loan);
         }
-
-        loan.markOverdue();
-
-        loanRepository.save(loan);
-
-        applyLateFees(loan, terms, installments, today);
     }
 
     private boolean isOverdue(Installment installment, int gracePeriodDays, LocalDate today) {
@@ -99,48 +98,56 @@ public class OverdueLoanSweepService {
         return today.isAfter(overdueDate);
     }
 
-    private void applyLateFees(Loan loan, LoanTerms terms, List<Installment> installments, LocalDate today) {
+    private void applyLateFees(Loan loan, Installment installment, LoanTerms terms, LocalDate today) {
 
-        List<LoanTermFee> termFees = loanTermFeeRepository.findByLoanTermsId(terms.getId());
+        long daysAfterDue = ChronoUnit.DAYS.between(installment.getDueDate(), today);
 
-        List<LoanTermFee> lateFeeRules = termFees.stream()
-                .filter(fee -> fee.getFeeType() == FeeType.LATE)
-                .toList();
+        for (LoanTermFee fee : terms.getFees()) {
 
-        for (LoanTermFee lateFeeRule : lateFeeRules) {
-            applyLateFee(loan, lateFeeRule, installments, today);
+            if (fee.getFeeType() != FeeType.LATE) {
+                continue;
+            }
+
+            if (fee.getTriggerDays() == null) {
+                continue;
+            }
+
+            if (daysAfterDue < fee.getTriggerDays()) {
+                continue;
+            }
+
+            applyLateFee(loan, installment, fee, today);
         }
     }
 
-    private void applyLateFee(Loan loan, LoanTermFee lateFeeRule, List<Installment> installments, LocalDate today) {
+    private void applyLateFee(Loan loan, Installment installment, LoanTermFee fee, LocalDate today) {
 
-        for (Installment installment : installments) {
+        // Used to prevent duplicate late fees for the same installment and fee trigger
+        // days
+        String reference = "LATE:"
+                + loan.getId()
+                + ":"
+                + installment.getId()
+                + ":"
+                + fee.getTriggerDays();
 
-            int daysAfterDue = (int) (today.toEpochDay() - installment.getDueDate().toEpochDay());
-
-            if (daysAfterDue < lateFeeRule.getTriggerDays()) {
-                continue;
-            }
-
-            // Check if a late fee has already been applied for this installment
-            String reference = "LATE:" + loan.getId() + ":" + installment.getId() + ":" + lateFeeRule.getTriggerDays();
-
-            if (loanFeeRepository.existsByReference(reference)) {
-                continue;
-            }
-
-            BigDecimal amount = loanFeeCalculator.calculate(lateFeeRule, installment.getOutstandingPrincipal());
-
-            LoanFee loanFee = new LoanFee(
-                    loan,
-                    FeeType.LATE,
-                    amount,
-                    today,
-                    installment.getDueDate(),
-                    reference,
-                    "Late payment fee for installment " + installment.getInstallmentNumber());
-
-            loanFeeRepository.save(loanFee);
+        if (loanFeeRepository.existsByReference(reference)) {
+            return;
         }
+
+        BigDecimal outstandingPrincipal = installment.getOutstandingPrincipal();
+
+        BigDecimal amount = loanFeeCalculator.calculate(fee, outstandingPrincipal);
+
+        LoanFee loanFee = new LoanFee(
+                loan,
+                FeeType.LATE,
+                amount,
+                today,
+                installment.getDueDate(),
+                reference,
+                "Late fee for overdue installment " + installment.getInstallmentNumber());
+
+        loanFeeRepository.save(loanFee);
     }
 }

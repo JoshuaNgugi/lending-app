@@ -1,9 +1,13 @@
 package com.lending.app;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
@@ -18,13 +22,18 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.lending.app.loan.application.LoanFeeCalculator;
 import com.lending.app.loan.application.OverdueLoanSweepService;
 import com.lending.app.loan.domain.Loan;
+import com.lending.app.loan.domain.LoanFee;
+import com.lending.app.loan.domain.LoanTermFee;
 import com.lending.app.loan.domain.LoanTerms;
 import com.lending.app.loan.repository.LoanFeeRepository;
 import com.lending.app.loan.repository.LoanRepository;
-import com.lending.app.loan.repository.LoanTermFeeRepository;
 import com.lending.app.product.domain.BillingMode;
+import com.lending.app.product.domain.FeeApplicationTiming;
+import com.lending.app.product.domain.FeeCalculationType;
+import com.lending.app.product.domain.FeeType;
 import com.lending.app.product.domain.LoanStructure;
 import com.lending.app.product.domain.TenureUnit;
 import com.lending.app.repayment_schedule.domain.Installment;
@@ -42,10 +51,10 @@ class OverdueLoanSweepServiceTest {
     private InstallmentRepository installmentRepository;
 
     @Mock
-    private LoanTermFeeRepository loanTermFeeRepository;
+    private LoanFeeRepository loanFeeRepository;
 
     @Mock
-    private LoanFeeRepository loanFeeRepository;
+    private LoanFeeCalculator loanFeeCalculator;
 
     @InjectMocks
     private OverdueLoanSweepService overdueLoanSweepService;
@@ -103,15 +112,12 @@ class OverdueLoanSweepServiceTest {
         when(loan.getLoanTerms()).thenReturn(terms);
 
         when(schedule.getId()).thenReturn(scheduleId);
-        when(terms.getId()).thenReturn(termsId);
 
         when(terms.getGracePeriodDays()).thenReturn(3);
 
         when(loanRepository.findOpenLoansWithOutstandingInstallments()).thenReturn(List.of(loan));
 
         when(installmentRepository.findOutstandingInstallments(schedule.getId())).thenReturn(List.of(installment));
-
-        when(loanTermFeeRepository.findByLoanTermsId(terms.getId())).thenReturn(List.of());
 
         overdueLoanSweepService.execute(LocalDate.of(2026, 9, 14));
 
@@ -182,7 +188,6 @@ class OverdueLoanSweepServiceTest {
         when(loan.getLoanTerms()).thenReturn(terms);
 
         when(schedule.getId()).thenReturn(scheduleId);
-        when(terms.getId()).thenReturn(termsId);
 
         when(terms.getGracePeriodDays()).thenReturn(3);
 
@@ -191,8 +196,6 @@ class OverdueLoanSweepServiceTest {
         when(installmentRepository.findOutstandingInstallments(
                 schedule.getId()))
                 .thenReturn(List.of(installment));
-
-        when(loanTermFeeRepository.findByLoanTermsId(terms.getId())).thenReturn(List.of());
 
         overdueLoanSweepService.execute(LocalDate.of(2026, 9, 14));
 
@@ -232,5 +235,225 @@ class OverdueLoanSweepServiceTest {
 
         verify(loan, never()).markOverdue();
         verify(loanRepository, never()).save(loan);
+    }
+
+    /**
+     * Test to verify that a late fee is applied when the trigger days for the late
+     * fee are reached.
+     * 
+     * Example: If the installment due date is September 10, 2026, and the grace
+     * period is 3 days,
+     * the installment becomes overdue on September 13, 2026.
+     * If a late fee has a trigger of 5 days after the due date, it should be
+     * applied on September 15, 2026.
+     */
+    @Test
+    void shouldApplyLateFeeWhenTriggerDaysAreReached() {
+
+        Loan loan = mock(Loan.class);
+        RepaymentSchedule schedule = mock(RepaymentSchedule.class);
+        LoanTerms terms = mock(LoanTerms.class);
+
+        Installment installment = new Installment(
+                schedule,
+                1,
+                LocalDate.of(2026, 9, 10),
+                new BigDecimal("3333.33"));
+
+        LoanTermFee lateFee = new LoanTermFee(
+                terms,
+                FeeType.LATE,
+                FeeCalculationType.FIXED,
+                new BigDecimal("200.00"),
+                FeeApplicationTiming.AFTER_DUE_DATE,
+                5);
+
+        when(loan.getRepaymentSchedule()).thenReturn(schedule);
+        when(loan.getLoanTerms()).thenReturn(terms);
+
+        when(schedule.getId()).thenReturn(scheduleId);
+
+        when(terms.getGracePeriodDays()).thenReturn(3);
+        when(terms.getFees()).thenReturn(List.of(lateFee));
+
+        when(loanRepository.findOpenLoansWithOutstandingInstallments()).thenReturn(List.of(loan));
+
+        when(installmentRepository.findOutstandingInstallments(scheduleId)).thenReturn(List.of(installment));
+
+        when(loanFeeRepository.existsByReference(anyString())).thenReturn(false);
+
+        when(loanFeeCalculator.calculate(
+                eq(lateFee),
+                eq(new BigDecimal("3333.33"))))
+                .thenReturn(new BigDecimal("200.00"));
+
+        overdueLoanSweepService.execute(LocalDate.of(2026, 9, 15));
+
+        verify(loanFeeRepository).save(any(LoanFee.class));
+
+        verify(loanFeeCalculator).calculate(eq(lateFee), eq(new BigDecimal("3333.33")));
+    }
+
+    /**
+     * Test to verify that a late fee is not applied before the trigger days for the
+     * late fee are reached.
+     * 
+     * Example: If the installment due date is September 10, 2026, and the grace
+     * period is 3 days,
+     * the installment becomes overdue on September 13, 2026.
+     * If a late fee has a trigger of 5 days after the due date, it should not be
+     * applied on September 14, 2026.
+     */
+    @Test
+    void shouldNotApplyLateFeeBeforeTriggerDays() {
+
+        Loan loan = mock(Loan.class);
+        RepaymentSchedule schedule = mock(RepaymentSchedule.class);
+        LoanTerms terms = mock(LoanTerms.class);
+
+        Installment installment = new Installment(
+                schedule,
+                1,
+                LocalDate.of(2026, 9, 10),
+                new BigDecimal("3333.33"));
+
+        LoanTermFee lateFee = new LoanTermFee(
+                terms,
+                FeeType.LATE,
+                FeeCalculationType.FIXED,
+                new BigDecimal("200.00"),
+                FeeApplicationTiming.AFTER_DUE_DATE,
+                5);
+
+        when(loan.getRepaymentSchedule()).thenReturn(schedule);
+        when(loan.getLoanTerms()).thenReturn(terms);
+
+        when(schedule.getId()).thenReturn(scheduleId);
+
+        when(terms.getGracePeriodDays()).thenReturn(3);
+        when(terms.getFees()).thenReturn(List.of(lateFee));
+
+        when(loanRepository.findOpenLoansWithOutstandingInstallments())
+                .thenReturn(List.of(loan));
+
+        when(installmentRepository.findOutstandingInstallments(scheduleId))
+                .thenReturn(List.of(installment));
+
+        overdueLoanSweepService.execute(LocalDate.of(2026, 9, 14));
+
+        verify(loanFeeRepository, never()).save(any(LoanFee.class));
+
+        verifyNoInteractions(loanFeeCalculator);
+    }
+
+    /**
+     * Test to verify that a late fee is applied exactly on the trigger day for the
+     * late fee.
+     * 
+     * Example: If the installment due date is September 10, 2026, and the grace
+     * period is 3 days,
+     * the installment becomes overdue on September 13, 2026.
+     * If a late fee has a trigger of 5 days after the due date, it should be
+     * applied on September 15, 2026.
+     * 
+     * This test ensures that the late fee is applied on the correct day and not
+     * before or after.
+     * 
+     */
+    @Test
+    void shouldApplyLateFeeExactlyOnTriggerDay() {
+
+        Loan loan = mock(Loan.class);
+        RepaymentSchedule schedule = mock(RepaymentSchedule.class);
+        LoanTerms terms = mock(LoanTerms.class);
+
+        Installment installment = new Installment(
+                schedule,
+                1,
+                LocalDate.of(2026, 9, 10),
+                new BigDecimal("3333.33"));
+
+        LoanTermFee lateFee = new LoanTermFee(
+                terms,
+                FeeType.LATE,
+                FeeCalculationType.FIXED,
+                new BigDecimal("200.00"),
+                FeeApplicationTiming.AFTER_DUE_DATE,
+                5);
+
+        when(loan.getId()).thenReturn(loanId);
+        when(loan.getRepaymentSchedule()).thenReturn(schedule);
+        when(loan.getLoanTerms()).thenReturn(terms);
+
+        when(schedule.getId()).thenReturn(scheduleId);
+
+        when(terms.getGracePeriodDays()).thenReturn(3);
+        when(terms.getFees()).thenReturn(List.of(lateFee));
+
+        when(loanRepository.findOpenLoansWithOutstandingInstallments()).thenReturn(List.of(loan));
+
+        when(installmentRepository.findOutstandingInstallments(scheduleId)).thenReturn(List.of(installment));
+
+        when(loanFeeRepository.existsByReference(anyString())).thenReturn(false);
+
+        when(loanFeeCalculator.calculate(
+                eq(lateFee),
+                eq(new BigDecimal("3333.33"))))
+                .thenReturn(new BigDecimal("200.00"));
+
+        overdueLoanSweepService.execute(LocalDate.of(2026, 9, 15));
+
+        verify(loanFeeRepository).save(any(LoanFee.class));
+    }
+
+    /**
+     * Test to verify that a late fee is not applied if it has already been applied
+     * for the same installment and fee trigger days.
+     * 
+     * This test ensures that duplicate late fees are not created for the same
+     * installment and fee trigger days.
+     * 
+     */
+    @Test
+    void shouldNotCreateDuplicateLateFee() {
+
+        Loan loan = mock(Loan.class);
+        RepaymentSchedule schedule = mock(RepaymentSchedule.class);
+        LoanTerms terms = mock(LoanTerms.class);
+
+        Installment installment = new Installment(
+                schedule,
+                1,
+                LocalDate.of(2026, 9, 10),
+                new BigDecimal("3333.33"));
+
+        LoanTermFee lateFee = new LoanTermFee(
+                terms,
+                FeeType.LATE,
+                FeeCalculationType.FIXED,
+                new BigDecimal("200.00"),
+                FeeApplicationTiming.AFTER_DUE_DATE,
+                5);
+
+        when(loan.getId()).thenReturn(loanId);
+        when(loan.getRepaymentSchedule()).thenReturn(schedule);
+        when(loan.getLoanTerms()).thenReturn(terms);
+
+        when(schedule.getId()).thenReturn(scheduleId);
+
+        when(terms.getGracePeriodDays()).thenReturn(3);
+        when(terms.getFees()).thenReturn(List.of(lateFee));
+
+        when(loanRepository.findOpenLoansWithOutstandingInstallments()).thenReturn(List.of(loan));
+
+        when(installmentRepository.findOutstandingInstallments(scheduleId)).thenReturn(List.of(installment));
+
+        when(loanFeeRepository.existsByReference(anyString())).thenReturn(true);
+
+        overdueLoanSweepService.execute(LocalDate.of(2026, 9, 15));
+
+        verify(loanFeeRepository, never()).save(any(LoanFee.class));
+
+        verifyNoInteractions(loanFeeCalculator);
     }
 }

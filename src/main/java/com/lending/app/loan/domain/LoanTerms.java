@@ -1,11 +1,14 @@
 package com.lending.app.loan.domain;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import com.lending.app.product.domain.BillingMode;
 import com.lending.app.product.domain.LoanStructure;
 import com.lending.app.product.domain.TenureUnit;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -15,6 +18,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
@@ -53,6 +57,9 @@ public class LoanTerms {
 
     @Column(name = "installment_count")
     private Integer installmentCount;
+
+    @OneToMany(mappedBy = "loanTerms", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<LoanTermFee> fees = new ArrayList<>();
 
     protected LoanTerms() {
     }
@@ -112,4 +119,11 @@ public class LoanTerms {
         return installmentCount;
     }
 
+    public List<LoanTermFee> getFees() {
+        return fees;
+    }
+
+    public void addFee(LoanTermFee fee) {
+        fees.add(fee);
+    }
 }

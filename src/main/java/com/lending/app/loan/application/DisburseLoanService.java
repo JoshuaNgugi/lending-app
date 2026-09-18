@@ -82,29 +82,31 @@ public class DisburseLoanService {
 
         LocalDate disbursementDate = LocalDate.now();
 
-        LoanTerms terms = new LoanTerms(loan, product.getTenureValue(), product.getTenureUnit(), product.getStructure(),
+        LoanTerms loanTerms = new LoanTerms(loan, product.getTenureValue(), product.getTenureUnit(), product.getStructure(),
                 product.getBillingMode(), product.getBillingDay(), product.getGracePeriodDays(),
                 product.getInstallmentCount());
 
-        loanTermsRepository.save(terms);
+        loanTermsRepository.save(loanTerms);
 
         List<ProductFee> productFees = productFeeRepository.findByProductId(product.getId());
 
         for (ProductFee productFee : productFees) {
-            LoanTermFee termFee = new LoanTermFee(terms, productFee.getFeeType(), productFee.getCalculationType(),
+            LoanTermFee termFee = new LoanTermFee(loanTerms, productFee.getFeeType(), productFee.getCalculationType(),
                     productFee.getValue(), productFee.getApplicationTiming(), productFee.getTriggerDays());
+                    
+            loanTerms.addFee(termFee);
 
             loanTermFeeRepository.save(termFee);
         }
 
-        LocalDate maturityDate = maturityCalculator.calculate(disbursementDate, terms.getTenureValue(),
-                terms.getTenureUnit());
+        LocalDate maturityDate = maturityCalculator.calculate(disbursementDate, loanTerms.getTenureValue(),
+                loanTerms.getTenureUnit());
 
         loan.disburse(disbursementDate, maturityDate);
 
-        createRepaymentScheduleService.execute(loan, terms);
+        createRepaymentScheduleService.execute(loan, loanTerms);
 
-        for (LoanTermFee termFee : getTermFees(terms.getId())) {
+        for (LoanTermFee termFee : getTermFees(loanTerms.getId())) {
 
             if (termFee.getApplicationTiming() == FeeApplicationTiming.ORIGINAL) {
                 BigDecimal amount = feeCalculator.calculate(termFee, loan.getPrincipal());
