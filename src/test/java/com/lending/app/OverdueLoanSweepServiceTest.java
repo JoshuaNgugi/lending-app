@@ -21,7 +21,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
+import com.lending.app.customer.domain.Customer;
 import com.lending.app.loan.application.LoanFeeCalculator;
 import com.lending.app.loan.application.OverdueLoanSweepService;
 import com.lending.app.loan.domain.Loan;
@@ -56,10 +58,14 @@ class OverdueLoanSweepServiceTest {
     @Mock
     private LoanFeeCalculator loanFeeCalculator;
 
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
+
     @InjectMocks
     private OverdueLoanSweepService overdueLoanSweepService;
 
     private UUID loanId;
+        private UUID customerId;
     private UUID scheduleId;
 
     private Loan loan;
@@ -69,6 +75,7 @@ class OverdueLoanSweepServiceTest {
     @BeforeEach
     void setUp() {
         loanId = UUID.randomUUID();
+        customerId = UUID.randomUUID();
         scheduleId = UUID.randomUUID();
 
         loan = new Loan(null, null, new BigDecimal("10000.00"));
@@ -92,8 +99,27 @@ class OverdueLoanSweepServiceTest {
         loan.setLoanTerms(terms);
     }
 
+        private void stubLoanIdentity(Loan loan) {
+                Customer customer = mock(Customer.class);
+
+                when(loan.getId()).thenReturn(loanId);
+                when(loan.getCustomer()).thenReturn(customer);
+                when(customer.getId()).thenReturn(customerId);
+        }
+
+    /**
+     * Test to verify that a loan is marked as overdue when an installment is past
+     * the grace period.
+     * 
+     * Example: If the installment due date is September 10, 2026, and the grace
+     * period is 3 days,
+     * the installment becomes overdue on September 13, 2026.
+     * 
+     * This test ensures that the loan is marked as overdue and the installment
+     * status is updated accordingly.
+     */
     @Test
-    void shouldMarkLoanOverdueWhenInstallmentIsPastGracePeriod() {
+        void shouldMarkLoanOverdueWhenInstallmentIsPastGracePeriod() {
 
         Loan loan = mock(Loan.class);
         RepaymentSchedule schedule = mock(RepaymentSchedule.class);
@@ -117,6 +143,7 @@ class OverdueLoanSweepServiceTest {
 
         when(installmentRepository.findOutstandingInstallments(schedule.getId())).thenReturn(List.of(installment));
 
+        stubLoanIdentity(loan);
         overdueLoanSweepService.execute(LocalDate.of(2026, 9, 14));
 
         assertEquals(InstallmentStatus.OVERDUE, installment.getStatus());
@@ -126,6 +153,10 @@ class OverdueLoanSweepServiceTest {
         verify(installmentRepository).save(installment);
 
         verify(loanRepository).save(loan);
+
+        // Verify that the LoanOverdueEvent is published with the correct loanId and
+        // customerId
+        verify(eventPublisher).publishEvent(new LoanOverdueEvent(loanId, customerId));
     }
 
     @Test
@@ -186,6 +217,7 @@ class OverdueLoanSweepServiceTest {
         when(loan.getLoanTerms()).thenReturn(terms);
 
         when(schedule.getId()).thenReturn(scheduleId);
+        stubLoanIdentity(loan);
 
         when(terms.getGracePeriodDays()).thenReturn(3);
 
@@ -270,6 +302,7 @@ class OverdueLoanSweepServiceTest {
         when(loan.getLoanTerms()).thenReturn(terms);
 
         when(schedule.getId()).thenReturn(scheduleId);
+        stubLoanIdentity(loan);
 
         when(terms.getGracePeriodDays()).thenReturn(3);
         when(terms.getFees()).thenReturn(List.of(lateFee));
@@ -327,6 +360,7 @@ class OverdueLoanSweepServiceTest {
         when(loan.getLoanTerms()).thenReturn(terms);
 
         when(schedule.getId()).thenReturn(scheduleId);
+        stubLoanIdentity(loan);
 
         when(terms.getGracePeriodDays()).thenReturn(3);
         when(terms.getFees()).thenReturn(List.of(lateFee));
@@ -379,7 +413,7 @@ class OverdueLoanSweepServiceTest {
                 FeeApplicationTiming.AFTER_DUE_DATE,
                 5);
 
-        when(loan.getId()).thenReturn(loanId);
+        stubLoanIdentity(loan);
         when(loan.getRepaymentSchedule()).thenReturn(schedule);
         when(loan.getLoanTerms()).thenReturn(terms);
 
@@ -433,7 +467,7 @@ class OverdueLoanSweepServiceTest {
                 FeeApplicationTiming.AFTER_DUE_DATE,
                 5);
 
-        when(loan.getId()).thenReturn(loanId);
+        stubLoanIdentity(loan);
         when(loan.getRepaymentSchedule()).thenReturn(schedule);
         when(loan.getLoanTerms()).thenReturn(terms);
 

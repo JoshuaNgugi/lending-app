@@ -5,9 +5,11 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.lending.app.LoanOverdueEvent;
 import com.lending.app.loan.domain.Loan;
 import com.lending.app.loan.domain.LoanFee;
 import com.lending.app.loan.domain.LoanTermFee;
@@ -28,17 +30,20 @@ public class OverdueLoanSweepService {
     private final InstallmentRepository installmentRepository;
     private final LoanFeeRepository loanFeeRepository;
     private final LoanFeeCalculator loanFeeCalculator;
+    private final ApplicationEventPublisher eventPublisher;
 
     public OverdueLoanSweepService(
             LoanRepository loanRepository,
             InstallmentRepository installmentRepository,
             LoanFeeRepository loanFeeRepository,
-            LoanFeeCalculator loanFeeCalculator) {
+            LoanFeeCalculator loanFeeCalculator,
+            ApplicationEventPublisher eventPublisher) {
 
         this.loanRepository = loanRepository;
         this.installmentRepository = installmentRepository;
         this.loanFeeRepository = loanFeeRepository;
         this.loanFeeCalculator = loanFeeCalculator;
+        this.eventPublisher = eventPublisher;
     }
 
     @Transactional
@@ -88,6 +93,8 @@ public class OverdueLoanSweepService {
         if (overdue) {
             loan.markOverdue();
             loanRepository.save(loan);
+
+            eventPublisher.publishEvent(new LoanOverdueEvent(loan.getId(), loan.getCustomer().getId()));
         }
     }
 
