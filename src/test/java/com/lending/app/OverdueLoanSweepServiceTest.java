@@ -61,7 +61,6 @@ class OverdueLoanSweepServiceTest {
 
     private UUID loanId;
     private UUID scheduleId;
-    private UUID termsId;
 
     private Loan loan;
     private RepaymentSchedule schedule;
@@ -71,7 +70,6 @@ class OverdueLoanSweepServiceTest {
     void setUp() {
         loanId = UUID.randomUUID();
         scheduleId = UUID.randomUUID();
-        termsId = UUID.randomUUID();
 
         loan = new Loan(null, null, new BigDecimal("10000.00"));
 
