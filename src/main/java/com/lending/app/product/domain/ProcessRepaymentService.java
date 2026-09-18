@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,6 +14,8 @@ import com.lending.app.loan.domain.LoanFee;
 import com.lending.app.loan.domain.LoanStatus;
 import com.lending.app.loan.repository.LoanFeeRepository;
 import com.lending.app.loan.repository.LoanRepository;
+import com.lending.app.notification.event.NotificationEvent;
+import com.lending.app.notification.event.NotificationEventType;
 import com.lending.app.repayment.domain.Repayment;
 import com.lending.app.repayment.domain.RepaymentAllocation;
 import com.lending.app.repayment.repayment.RepaymentAllocationRepository;
@@ -31,18 +34,21 @@ public class ProcessRepaymentService {
     private final RepaymentAllocationRepository repaymentAllocationRepository;
     private final LoanFeeRepository loanFeeRepository;
     private final InstallmentRepository installmentRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public ProcessRepaymentService(
             LoanRepository loanRepository,
             RepaymentRepository repaymentRepository,
             RepaymentAllocationRepository repaymentAllocationRepository,
             LoanFeeRepository loanFeeRepository,
-            InstallmentRepository installmentRepository) {
+            InstallmentRepository installmentRepository,
+            ApplicationEventPublisher eventPublisher) {
         this.loanRepository = loanRepository;
         this.repaymentRepository = repaymentRepository;
         this.repaymentAllocationRepository = repaymentAllocationRepository;
         this.loanFeeRepository = loanFeeRepository;
         this.installmentRepository = installmentRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     public Repayment execute(UUID loanId, BigDecimal amount, String reference, String channel) {
@@ -91,6 +97,9 @@ public class ProcessRepaymentService {
         updateLoanStatus(loan, outstandingFees, outstandingInstallments);
 
         loanRepository.save(loan);
+
+        eventPublisher.publishEvent(new NotificationEvent(NotificationEventType.PAYMENT_RECEIVED,
+                loan.getId(), loan.getCustomer().getId()));
 
         return repayment;
     }

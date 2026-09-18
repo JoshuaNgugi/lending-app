@@ -15,7 +15,8 @@ import com.lending.app.loan.domain.LoanTermFee;
 import com.lending.app.loan.domain.LoanTerms;
 import com.lending.app.loan.repository.LoanFeeRepository;
 import com.lending.app.loan.repository.LoanRepository;
-import com.lending.app.notification.event.LoanOverdueEvent;
+import com.lending.app.notification.event.NotificationEvent;
+import com.lending.app.notification.event.NotificationEventType;
 import com.lending.app.product.domain.FeeType;
 import com.lending.app.repayment_schedule.domain.Installment;
 import com.lending.app.repayment_schedule.domain.InstallmentStatus;
@@ -94,7 +95,8 @@ public class OverdueLoanSweepService {
             loan.markOverdue();
             loanRepository.save(loan);
 
-            eventPublisher.publishEvent(new LoanOverdueEvent(loan.getId(), loan.getCustomer().getId()));
+            eventPublisher.publishEvent(new NotificationEvent(NotificationEventType.LOAN_OVERDUE,
+                    loan.getId(), loan.getCustomer().getId()));
         }
     }
 
