@@ -1,4 +1,4 @@
-package com.lending.app;
+package com.lending.app.notification.event;
 
 import java.util.UUID;
 

@@ -32,6 +32,7 @@ import com.lending.app.loan.domain.LoanTermFee;
 import com.lending.app.loan.domain.LoanTerms;
 import com.lending.app.loan.repository.LoanFeeRepository;
 import com.lending.app.loan.repository.LoanRepository;
+import com.lending.app.notification.event.LoanOverdueEvent;
 import com.lending.app.product.domain.BillingMode;
 import com.lending.app.product.domain.FeeApplicationTiming;
 import com.lending.app.product.domain.FeeCalculationType;
@@ -65,7 +66,7 @@ class OverdueLoanSweepServiceTest {
     private OverdueLoanSweepService overdueLoanSweepService;
 
     private UUID loanId;
-        private UUID customerId;
+    private UUID customerId;
     private UUID scheduleId;
 
     private Loan loan;
@@ -99,13 +100,13 @@ class OverdueLoanSweepServiceTest {
         loan.setLoanTerms(terms);
     }
 
-        private void stubLoanIdentity(Loan loan) {
-                Customer customer = mock(Customer.class);
+    private void stubLoanIdentity(Loan loan) {
+        Customer customer = mock(Customer.class);
 
-                when(loan.getId()).thenReturn(loanId);
-                when(loan.getCustomer()).thenReturn(customer);
-                when(customer.getId()).thenReturn(customerId);
-        }
+        when(loan.getId()).thenReturn(loanId);
+        when(loan.getCustomer()).thenReturn(customer);
+        when(customer.getId()).thenReturn(customerId);
+    }
 
     /**
      * Test to verify that a loan is marked as overdue when an installment is past
@@ -119,7 +120,7 @@ class OverdueLoanSweepServiceTest {
      * status is updated accordingly.
      */
     @Test
-        void shouldMarkLoanOverdueWhenInstallmentIsPastGracePeriod() {
+    void shouldMarkLoanOverdueWhenInstallmentIsPastGracePeriod() {
 
         Loan loan = mock(Loan.class);
         RepaymentSchedule schedule = mock(RepaymentSchedule.class);

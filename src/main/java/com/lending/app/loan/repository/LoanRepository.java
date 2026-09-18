@@ -19,7 +19,7 @@ public interface LoanRepository extends JpaRepository<Loan, UUID> {
     @Query("""
             SELECT DISTINCT l FROM Loan l
             JOIN l.repaymentSchedule rs
-            JOIN Installment i ON i.shedule = rs
+            JOIN Installment i ON i.schedule = rs
             WHERE l.status = com.lending.app.loan.domain.LoanStatus.OPEN
             AND i.status IN (
                 com.lending.app.repayment_schedule.domain.InstallmentStatus.PENDING,

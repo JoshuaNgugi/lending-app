@@ -9,13 +9,13 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.lending.app.LoanOverdueEvent;
 import com.lending.app.loan.domain.Loan;
 import com.lending.app.loan.domain.LoanFee;
 import com.lending.app.loan.domain.LoanTermFee;
 import com.lending.app.loan.domain.LoanTerms;
 import com.lending.app.loan.repository.LoanFeeRepository;
 import com.lending.app.loan.repository.LoanRepository;
+import com.lending.app.notification.event.LoanOverdueEvent;
 import com.lending.app.product.domain.FeeType;
 import com.lending.app.repayment_schedule.domain.Installment;
 import com.lending.app.repayment_schedule.domain.InstallmentStatus;
