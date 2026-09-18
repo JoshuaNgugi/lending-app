@@ -52,7 +52,7 @@ public class LoanOverdueNotificationHandler {
 
         List<NotificationRule> rules = notificationRuleService.findApplicableRules(
                 NotificationEventType.LOAN_OVERDUE,
-                customer.getSegment());
+                customer);
 
         NotificationContext context = new NotificationContext(
                 customer,
