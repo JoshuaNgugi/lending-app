@@ -5,6 +5,14 @@ import java.time.LocalDate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+/**
+ * This class is responsible for scheduling the overdue loan sweep process.
+ * It uses the OverdueLoanSweepService to execute the sweep at a specified interval.
+ * 
+ * @param loan.overdue-sweep.cron The cron expression for scheduling the sweep process.
+ * It is configured in the application properties file.
+ * 
+ */
 @Component
 public class LoanOverdueScheduler {
 

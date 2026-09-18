@@ -20,6 +20,7 @@ import com.lending.app.repayment_schedule.domain.RepaymentSchedule;
 import com.lending.app.repayment_schedule.repository.InstallmentRepository;
 
 @Service
+@Transactional
 public class OverdueLoanSweepService {
 
     private final LoanRepository loanRepository;
@@ -71,10 +72,7 @@ public class OverdueLoanSweepService {
         boolean overdue = false;
 
         for (Installment installment : installments) {
-            if (isOverdue(
-                    installment,
-                    terms.getGracePeriodDays(),
-                    today)) {
+            if (isOverdue(installment, terms.getGracePeriodDays(), today)) {
 
                 installment.markOverdue();
                 installmentRepository.save(installment);
