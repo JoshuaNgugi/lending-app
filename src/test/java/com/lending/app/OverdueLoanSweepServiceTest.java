@@ -32,7 +32,8 @@ import com.lending.app.loan.domain.LoanTermFee;
 import com.lending.app.loan.domain.LoanTerms;
 import com.lending.app.loan.repository.LoanFeeRepository;
 import com.lending.app.loan.repository.LoanRepository;
-import com.lending.app.notification.event.LoanOverdueEvent;
+import com.lending.app.notification.event.NotificationEvent;
+import com.lending.app.notification.event.NotificationEventType;
 import com.lending.app.product.domain.BillingMode;
 import com.lending.app.product.domain.FeeApplicationTiming;
 import com.lending.app.product.domain.FeeCalculationType;
@@ -157,7 +158,8 @@ class OverdueLoanSweepServiceTest {
 
         // Verify that the LoanOverdueEvent is published with the correct loanId and
         // customerId
-        verify(eventPublisher).publishEvent(new LoanOverdueEvent(loanId, customerId));
+        verify(eventPublisher)
+                .publishEvent(new NotificationEvent(NotificationEventType.LOAN_OVERDUE, loanId, customerId));
     }
 
     @Test
