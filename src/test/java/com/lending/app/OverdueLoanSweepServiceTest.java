@@ -3,6 +3,7 @@ package com.lending.app;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -26,6 +27,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 
 import com.lending.app.customer.domain.Customer;
+import com.lending.app.customer.domain.CustomerSegment;
 import com.lending.app.loan.application.LoanFeeCalculator;
 import com.lending.app.loan.application.OverdueLoanSweepService;
 import com.lending.app.loan.domain.Loan;
@@ -111,6 +113,33 @@ class OverdueLoanSweepServiceTest {
                 when(loan.getId()).thenReturn(loanId);
                 when(loan.getCustomer()).thenReturn(customer);
                 when(customer.getId()).thenReturn(customerId);
+                when(loan.markOverdue()).thenReturn(true);
+        }
+
+        private Loan createOpenLoan() {
+                Customer customer = new Customer(
+                                "Test",
+                                "Customer",
+                                "test@example.com",
+                                "254700000000",
+                                CustomerSegment.RETAIL);
+                Loan loan = new Loan(customer, null, new BigDecimal("10000.00"));
+                loan.disburse(
+                                LocalDate.of(2026, 9, 1),
+                                LocalDate.of(2026, 12, 1));
+                return loan;
+        }
+
+        private LoanTerms createLoanTerms(Loan loan, int gracePeriodDays) {
+                return new LoanTerms(
+                                loan,
+                                3,
+                                TenureUnit.MONTHS,
+                                LoanStructure.INSTALLMENT,
+                                BillingMode.INDIVIDUAL,
+                                null,
+                                gracePeriodDays,
+                                3);
         }
 
         /**
@@ -496,5 +525,79 @@ class OverdueLoanSweepServiceTest {
                 verify(loanFeeRepository, never()).save(any(LoanFee.class));
 
                 verifyNoInteractions(loanFeeCalculator);
+        }
+
+        @Test
+        void shouldPublishLoanOverdueEventWhenLoanBecomesOverdue() {
+
+                LocalDate today = LocalDate.of(2026, 9, 20);
+
+                Loan loan = createOpenLoan();
+
+                RepaymentSchedule schedule = new RepaymentSchedule(loan);
+
+                loan.setRepaymentSchedule(schedule);
+
+                Installment installment = new Installment(
+                                schedule,
+                                1,
+                                LocalDate.of(2026, 9, 18),
+                                new BigDecimal("1000.00"));
+
+                when(loanRepository.findOpenLoansWithOutstandingInstallments())
+                                .thenReturn(List.of(loan));
+
+                when(installmentRepository.findOutstandingInstallments(schedule.getId()))
+                                .thenReturn(List.of(installment));
+
+                LoanTerms terms = createLoanTerms(
+                                loan,
+                                1 // grace period
+                );
+
+                loan.setLoanTerms(terms);
+
+                overdueLoanSweepService.execute(today);
+
+                verify(eventPublisher).publishEvent(
+                                argThat((Object event) -> event instanceof NotificationEvent notificationEvent
+                                                && notificationEvent.eventType() == NotificationEventType.LOAN_OVERDUE
+                                                && java.util.Objects.equals(notificationEvent.loanId(), loan.getId())
+                                                && java.util.Objects.equals(notificationEvent.customerId(),
+                                                                loan.getCustomer().getId())));
+        }
+
+        @Test
+        void shouldNotPublishOverdueEventWhenLoanIsAlreadyOverdue() {
+
+                LocalDate today = LocalDate.of(2026, 9, 20);
+
+                Loan loan = createOpenLoan();
+
+                RepaymentSchedule schedule = new RepaymentSchedule(loan);
+
+                loan.setRepaymentSchedule(schedule);
+
+                // Make the loan already overdue.
+                loan.markOverdue();
+
+                Installment installment = new Installment(
+                                schedule,
+                                1,
+                                LocalDate.of(2026, 9, 18),
+                                new BigDecimal("1000.00"));
+
+                when(loanRepository.findOpenLoansWithOutstandingInstallments())
+                                .thenReturn(List.of(loan));
+
+                when(installmentRepository.findOutstandingInstallments(schedule.getId()))
+                                .thenReturn(List.of(installment));
+
+                LoanTerms terms = createLoanTerms(loan, 1);
+                loan.setLoanTerms(terms);
+
+                overdueLoanSweepService.execute(today);
+
+                verify(eventPublisher, never()).publishEvent(any(NotificationEvent.class));
         }
 }

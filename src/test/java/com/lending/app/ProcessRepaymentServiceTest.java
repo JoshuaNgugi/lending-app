@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -17,6 +18,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.Objects;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,12 +26,17 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import com.lending.app.loan.domain.Loan;
 import com.lending.app.loan.domain.LoanFee;
 import com.lending.app.loan.domain.LoanStatus;
 import com.lending.app.loan.repository.LoanFeeRepository;
 import com.lending.app.loan.repository.LoanRepository;
+import com.lending.app.customer.domain.Customer;
+import com.lending.app.customer.domain.CustomerSegment;
+import com.lending.app.notification.event.NotificationEvent;
+import com.lending.app.notification.event.NotificationEventType;
 import com.lending.app.product.domain.FeeType;
 import com.lending.app.product.domain.ProcessRepaymentService;
 import com.lending.app.repayment.domain.Repayment;
@@ -60,6 +67,9 @@ public class ProcessRepaymentServiceTest {
     @Mock
     private InstallmentRepository installmentRepository;
 
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
+
     @InjectMocks
     private ProcessRepaymentService processRepaymentService;
 
@@ -70,7 +80,13 @@ public class ProcessRepaymentServiceTest {
     @BeforeEach
     void setUp() {
         loanId = UUID.randomUUID();
-        loan = new Loan(null, null, new BigDecimal("10000.00"));
+        Customer customer = new Customer(
+                "Maimuna",
+                "Maksuudi",
+                "maimuna@email.com",
+                "254700000000",
+                CustomerSegment.RETAIL);
+        loan = new Loan(customer, null, new BigDecimal("10000.00"));
 
         loan.disburse(LocalDate.of(2026, 9, 17), LocalDate.of(2026, 12, 17));
 
@@ -328,5 +344,53 @@ public class ProcessRepaymentServiceTest {
         });
 
         verifyNoInteractions(loanRepository);
+    }
+
+    @Test
+    void shouldPublishPaymentReceivedEvent() {
+        BigDecimal amount = new BigDecimal("1000.00");
+        String reference = "PAY-001";
+
+        Installment installment = new Installment(
+                repaymentSchedule,
+                1,
+                LocalDate.of(2026, 10, 17),
+                new BigDecimal("3333.33"));
+
+        when(loanRepository.findById(loanId)).thenReturn(Optional.of(loan));
+        when(repaymentRepository.existsByReference(reference)).thenReturn(false);
+        when(loanFeeRepository.findOutstandingFees(loanId)).thenReturn(List.of());
+        when(installmentRepository.findOutstandingInstallments(repaymentSchedule.getId()))
+                .thenReturn(List.of(installment));
+        when(repaymentRepository.save(any(Repayment.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        processRepaymentService.execute(loanId, amount, reference, "MOBILE_MONEY");
+
+        verify(eventPublisher).publishEvent(
+                argThat((Object event) -> event instanceof NotificationEvent notificationEvent
+                        && notificationEvent.eventType() == NotificationEventType.PAYMENT_RECEIVED
+                        && Objects.equals(notificationEvent.loanId(), loan.getId())
+                        && Objects.equals(notificationEvent.customerId(), loan.getCustomer().getId())
+                        && notificationEvent.variables()
+                                .get("amount")
+                                .equals(amount)
+                        && notificationEvent.variables()
+                                .get("reference")
+                                .equals(reference)));
+    }
+
+    @Test
+    void shouldNotPublishPaymentReceivedEventWhenRepaymentFails() {
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> processRepaymentService.execute(
+                        loanId,
+                        BigDecimal.ZERO,
+                        "PAY-001",
+                        "MOBILE_MONEY"));
+
+        verify(eventPublisher, never()).publishEvent(any());
     }
 }
