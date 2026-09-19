@@ -169,12 +169,21 @@ public class Loan {
         this.updatedAt = Instant.now();
     }
 
-    public void markOverdue() {
+    // Returns boolean to let us know whether a loan transition actually happened
+    // This helps when publishing the loan overdue event in that we only want
+    // the event published when the loan actually transitions feom OPEN to OVERDUE
+    public boolean markOverdue() {
+
+        if (status == LoanStatus.OVERDUE) {
+            return false;
+        }
+
         if (status != LoanStatus.OPEN) {
             throw new IllegalStateException("Only open loans can be marked as overdue");
         }
 
         this.status = LoanStatus.OVERDUE;
         this.updatedAt = Instant.now();
+        return true;
     }
 }

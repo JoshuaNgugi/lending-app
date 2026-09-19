@@ -4,8 +4,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import com.lending.app.customer.domain.Customer;
 import com.lending.app.customer.repository.CustomerRepository;
@@ -46,7 +47,7 @@ public class NotificationEventHandler {
                 this.senderFactory = senderFactory;
         }
 
-        @EventListener
+        @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
         public void handle(NotificationEvent event) {
 
                 Customer customer = customerRepository
@@ -66,7 +67,6 @@ public class NotificationEventHandler {
                 variables.put("firstName", customer.getFirstName());
                 variables.put("lastName", customer.getLastName());
                 variables.put("productName", loan.getProduct().getName());
-
                 variables.putAll(event.variables());
 
                 for (NotificationRule rule : rules) {

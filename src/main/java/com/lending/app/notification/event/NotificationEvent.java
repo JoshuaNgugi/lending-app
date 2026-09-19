@@ -8,4 +8,7 @@ public record NotificationEvent(
                 UUID loanId,
                 UUID customerId,
                 Map<String, Object> variables) {
+        public NotificationEvent {
+                variables = Map.copyOf(variables);
+        }
 }

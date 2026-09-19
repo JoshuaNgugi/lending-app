@@ -3,7 +3,6 @@ package com.lending.app.loan.application;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -94,12 +93,16 @@ public class OverdueLoanSweepService {
         }
 
         if (overdue) {
-            loan.markOverdue();
-            loanRepository.save(loan);
+            boolean becameOverdue = loan.markOverdue();
+            // Check to guarantee state transition
+            if (becameOverdue) {
 
-            Map<String, Object> variables = new HashMap<>();
-            eventPublisher.publishEvent(new NotificationEvent(NotificationEventType.LOAN_OVERDUE,
-                    loan.getId(), loan.getCustomer().getId(), variables));
+                loanRepository.save(loan);
+
+                eventPublisher.publishEvent(new NotificationEvent(NotificationEventType.LOAN_OVERDUE,
+                        loan.getId(), loan.getCustomer().getId(),
+                        Map.of()));
+            }
         }
     }
 
