@@ -88,6 +88,10 @@ public class Installment {
         return status;
     }
 
+    public RepaymentSchedule getSchedule() {
+        return schedule;
+    }
+
     public BigDecimal getOutstandingPrincipal() {
         return principalDue.subtract(principalPaid);
     }

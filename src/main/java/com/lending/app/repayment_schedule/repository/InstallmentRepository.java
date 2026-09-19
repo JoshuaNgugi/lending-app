@@ -1,5 +1,6 @@
 package com.lending.app.repayment_schedule.repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -20,4 +21,11 @@ public interface InstallmentRepository extends JpaRepository<Installment, UUID> 
             ORDER BY i.dueDate ASC, i.installmentNumber ASC
             """)
     List<Installment> findOutstandingInstallments(@Param("scheduleId") UUID scheduleId);
+
+    @Query("""
+            SELECT i FROM Installment i
+            WHERE i.dueDate = :dueDate
+            AND i.principalPaid < i.principalDue
+            """)
+    List<Installment> findOutstandingInstallmentDueOn(@Param("dueDate") LocalDate dueDate);
 }

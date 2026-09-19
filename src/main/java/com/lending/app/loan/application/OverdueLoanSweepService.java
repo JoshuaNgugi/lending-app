@@ -3,7 +3,9 @@ package com.lending.app.loan.application;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -95,8 +97,9 @@ public class OverdueLoanSweepService {
             loan.markOverdue();
             loanRepository.save(loan);
 
+            Map<String, Object> variables = new HashMap<>();
             eventPublisher.publishEvent(new NotificationEvent(NotificationEventType.LOAN_OVERDUE,
-                    loan.getId(), loan.getCustomer().getId()));
+                    loan.getId(), loan.getCustomer().getId(), variables));
         }
     }
 

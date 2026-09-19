@@ -2,7 +2,9 @@ package com.lending.app.product.domain;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.context.ApplicationEventPublisher;
@@ -98,8 +100,9 @@ public class ProcessRepaymentService {
 
         loanRepository.save(loan);
 
+        Map<String, Object> variables = new HashMap<>();
         eventPublisher.publishEvent(new NotificationEvent(NotificationEventType.PAYMENT_RECEIVED,
-                loan.getId(), loan.getCustomer().getId()));
+                loan.getId(), loan.getCustomer().getId(), variables));
 
         return repayment;
     }

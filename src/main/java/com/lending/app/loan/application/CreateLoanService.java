@@ -1,5 +1,8 @@
 package com.lending.app.loan.application;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
@@ -55,8 +58,9 @@ public class CreateLoanService {
 
         Loan savedLoan = loanRepository.save(loan);
 
+        Map<String, Object> variables = new HashMap<>();
         eventPublisher.publishEvent(new NotificationEvent(NotificationEventType.LOAN_CREATED,
-                savedLoan.getId(), savedLoan.getCustomer().getId()));
+                savedLoan.getId(), savedLoan.getCustomer().getId(), variables));
 
         return savedLoan;
     }
