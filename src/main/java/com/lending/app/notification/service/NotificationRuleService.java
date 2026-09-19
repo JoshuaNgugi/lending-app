@@ -5,7 +5,6 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.lending.app.customer.domain.Customer;
-import com.lending.app.customer.domain.CustomerSegment;
 import com.lending.app.notification.channel.NotificationChannel;
 import com.lending.app.notification.domain.NotificationRule;
 import com.lending.app.notification.event.NotificationEventType;
