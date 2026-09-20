@@ -1,10 +1,12 @@
 package com.lending.app.loan.repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.lending.app.loan.domain.Loan;
 
@@ -26,4 +28,14 @@ public interface LoanRepository extends JpaRepository<Loan, UUID> {
                 com.lending.app.repayment_schedule.domain.InstallmentStatus.PARTIALLY_PAID)
             """)
     List<Loan> findOpenLoansWithOutstandingInstallments();
+
+    @Query("""
+            SELECT COALESCE(SUM(i.principalDue - i.principalPaid), 0)
+            FROM Installment i
+            WHERE i.schedule.loan.customer.id = :customerId
+            AND i.schedule.loan.status IN (
+                com.lending.app.loan.domain.LoanStatus.OPEN,
+                com.lending.app.loan.domain.LoanStatus.OVERDUE)
+            """)
+    BigDecimal calculateOutstandingExposure(@Param("customerId") UUID customerId);
 }

@@ -28,14 +28,17 @@ public class CreateLoanService {
     private final CustomerRepository customerRepository;
     private final LoanProductRepository loanProductRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final LoanLimitValidator loanLimitValidator;
 
     public CreateLoanService(LoanRepository loanRepository, CustomerRepository customerRepository,
-            LoanProductRepository loanProductRepository, ApplicationEventPublisher eventPublisher) {
+            LoanProductRepository loanProductRepository, ApplicationEventPublisher eventPublisher,
+            LoanLimitValidator loanLimitValidator) {
 
         this.loanRepository = loanRepository;
         this.customerRepository = customerRepository;
         this.loanProductRepository = loanProductRepository;
         this.eventPublisher = eventPublisher;
+        this.loanLimitValidator = loanLimitValidator;
     }
 
     public Loan execute(CreateLoanRequest request) {
@@ -53,6 +56,8 @@ public class CreateLoanService {
             throw new IllegalStateException("Loan product is not active");
         }
 
+        loanLimitValidator.validate(customer, request.principal());
+        
         Loan loan = new Loan(customer, product, request.principal());
 
         Loan savedLoan = loanRepository.save(loan);

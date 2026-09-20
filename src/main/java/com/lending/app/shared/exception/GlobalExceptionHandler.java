@@ -10,6 +10,12 @@ import com.lending.app.customer.exception.CustomerNotFoundException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    ResponseEntity<ApiError> handleResourceNotFound(ResourceNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiError("RESOURCE_NOT_FOUND", ex.getMessage()));
+    }
+
     @ExceptionHandler(CustomerNotFoundException.class)
     ResponseEntity<ApiError> handleNotFound(CustomerNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiError("CUSTOMER NOT FOUND", ex.getMessage()));
