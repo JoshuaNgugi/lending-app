@@ -13,21 +13,24 @@ import com.lending.app.loan.domain.Loan;
 public interface LoanRepository extends JpaRepository<Loan, UUID> {
 
     /**
-     * Finds all open loans that have at least one installment that is either
-     * pending or partially paid.
+     * Finds active loans that have at least one installment that is either
+     * pending, partially paid, or overdue. Overdue loans must remain eligible
+     * for later late-fee triggers on subsequent sweeps.
      *
-     * @return a list of open loans with outstanding installments
+     * @return a list of active loans with outstanding installments
      */
     @Query("""
             SELECT DISTINCT l FROM Loan l
             JOIN l.repaymentSchedule rs
             JOIN Installment i ON i.schedule = rs
-            WHERE l.status = com.lending.app.loan.domain.LoanStatus.OPEN
+            WHERE l.status IN (
+                com.lending.app.loan.domain.LoanStatus.OPEN,
+                com.lending.app.loan.domain.LoanStatus.OVERDUE)
             AND i.status IN (
                 com.lending.app.repayment_schedule.domain.InstallmentStatus.PENDING,
                 com.lending.app.repayment_schedule.domain.InstallmentStatus.PARTIALLY_PAID)
             """)
-    List<Loan> findOpenLoansWithOutstandingInstallments();
+    List<Loan> findActiveLoansWithOutstandingInstallments();
 
     @Query("""
             SELECT COALESCE(SUM(i.principalDue - i.principalPaid), 0)

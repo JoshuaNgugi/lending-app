@@ -155,7 +155,6 @@ class OverdueLoanSweepServiceTest {
          */
         @Test
         void shouldMarkLoanOverdueWhenInstallmentIsPastGracePeriod() {
-
                 Loan loan = mock(Loan.class);
                 RepaymentSchedule schedule = mock(RepaymentSchedule.class);
                 LoanTerms terms = mock(LoanTerms.class);
@@ -165,7 +164,6 @@ class OverdueLoanSweepServiceTest {
                                 1,
                                 LocalDate.of(2026, 9, 10),
                                 new BigDecimal("3333.33"));
-
                 when(loan.getRepaymentSchedule()).thenReturn(schedule);
 
                 when(loan.getLoanTerms()).thenReturn(terms);
@@ -174,7 +172,7 @@ class OverdueLoanSweepServiceTest {
 
                 when(terms.getGracePeriodDays()).thenReturn(3);
 
-                when(loanRepository.findOpenLoansWithOutstandingInstallments()).thenReturn(List.of(loan));
+                when(loanRepository.findActiveLoansWithOutstandingInstallments()).thenReturn(List.of(loan));
 
                 when(installmentRepository.findOutstandingInstallments(schedule.getId()))
                                 .thenReturn(List.of(installment));
@@ -209,7 +207,6 @@ class OverdueLoanSweepServiceTest {
                                 1,
                                 LocalDate.of(2026, 9, 10),
                                 new BigDecimal("3333.33"));
-
                 when(loan.getRepaymentSchedule()).thenReturn(schedule);
 
                 when(loan.getLoanTerms()).thenReturn(terms);
@@ -218,7 +215,7 @@ class OverdueLoanSweepServiceTest {
 
                 when(terms.getGracePeriodDays()).thenReturn(3);
 
-                when(loanRepository.findOpenLoansWithOutstandingInstallments()).thenReturn(List.of(loan));
+                when(loanRepository.findActiveLoansWithOutstandingInstallments()).thenReturn(List.of(loan));
 
                 when(installmentRepository.findOutstandingInstallments(
                                 schedule.getId()))
@@ -247,7 +244,7 @@ class OverdueLoanSweepServiceTest {
                                 1,
                                 LocalDate.of(2026, 9, 10),
                                 new BigDecimal("3333.33"));
-
+                when(loanRepository.findActiveLoansWithOutstandingInstallments()).thenReturn(List.of(loan));
                 installment.allocatePrincipal(new BigDecimal("1000.00"));
 
                 when(loan.getRepaymentSchedule()).thenReturn(schedule);
@@ -259,7 +256,7 @@ class OverdueLoanSweepServiceTest {
 
                 when(terms.getGracePeriodDays()).thenReturn(3);
 
-                when(loanRepository.findOpenLoansWithOutstandingInstallments()).thenReturn(List.of(loan));
+                when(loanRepository.findActiveLoansWithOutstandingInstallments()).thenReturn(List.of(loan));
 
                 when(installmentRepository.findOutstandingInstallments(
                                 schedule.getId()))
@@ -286,7 +283,7 @@ class OverdueLoanSweepServiceTest {
                                 1,
                                 LocalDate.of(2026, 9, 10),
                                 new BigDecimal("3333.33"));
-
+                when(loanRepository.findActiveLoansWithOutstandingInstallments()).thenReturn(List.of(loan));
                 installment.allocatePrincipal(new BigDecimal("3333.33"));
 
                 when(loan.getRepaymentSchedule()).thenReturn(schedule);
@@ -295,7 +292,7 @@ class OverdueLoanSweepServiceTest {
 
                 when(schedule.getId()).thenReturn(scheduleId);
 
-                when(loanRepository.findOpenLoansWithOutstandingInstallments()).thenReturn(List.of(loan));
+                when(loanRepository.findActiveLoansWithOutstandingInstallments()).thenReturn(List.of(loan));
 
                 when(installmentRepository.findOutstandingInstallments(schedule.getId())).thenReturn(List.of());
 
@@ -345,7 +342,7 @@ class OverdueLoanSweepServiceTest {
                 when(terms.getGracePeriodDays()).thenReturn(3);
                 when(terms.getFees()).thenReturn(List.of(lateFee));
 
-                when(loanRepository.findOpenLoansWithOutstandingInstallments()).thenReturn(List.of(loan));
+                when(loanRepository.findActiveLoansWithOutstandingInstallments()).thenReturn(List.of(loan));
 
                 when(installmentRepository.findOutstandingInstallments(scheduleId)).thenReturn(List.of(installment));
 
@@ -403,7 +400,7 @@ class OverdueLoanSweepServiceTest {
                 when(terms.getGracePeriodDays()).thenReturn(3);
                 when(terms.getFees()).thenReturn(List.of(lateFee));
 
-                when(loanRepository.findOpenLoansWithOutstandingInstallments())
+                when(loanRepository.findActiveLoansWithOutstandingInstallments())
                                 .thenReturn(List.of(loan));
 
                 when(installmentRepository.findOutstandingInstallments(scheduleId))
@@ -460,7 +457,7 @@ class OverdueLoanSweepServiceTest {
                 when(terms.getGracePeriodDays()).thenReturn(3);
                 when(terms.getFees()).thenReturn(List.of(lateFee));
 
-                when(loanRepository.findOpenLoansWithOutstandingInstallments()).thenReturn(List.of(loan));
+                when(loanRepository.findActiveLoansWithOutstandingInstallments()).thenReturn(List.of(loan));
 
                 when(installmentRepository.findOutstandingInstallments(scheduleId)).thenReturn(List.of(installment));
 
@@ -514,7 +511,7 @@ class OverdueLoanSweepServiceTest {
                 when(terms.getGracePeriodDays()).thenReturn(3);
                 when(terms.getFees()).thenReturn(List.of(lateFee));
 
-                when(loanRepository.findOpenLoansWithOutstandingInstallments()).thenReturn(List.of(loan));
+                when(loanRepository.findActiveLoansWithOutstandingInstallments()).thenReturn(List.of(loan));
 
                 when(installmentRepository.findOutstandingInstallments(scheduleId)).thenReturn(List.of(installment));
 
@@ -525,6 +522,45 @@ class OverdueLoanSweepServiceTest {
                 verify(loanFeeRepository, never()).save(any(LoanFee.class));
 
                 verifyNoInteractions(loanFeeCalculator);
+        }
+
+        @Test
+        void shouldApplyLaterLateFeeTriggerAfterLoanBecomesOverdue() {
+
+                Loan loan = createOpenLoan();
+                RepaymentSchedule schedule = new RepaymentSchedule(loan);
+                loan.setRepaymentSchedule(schedule);
+
+                Installment installment = new Installment(
+                                schedule,
+                                1,
+                                LocalDate.of(2026, 9, 10),
+                                new BigDecimal("3333.33"));
+
+                LoanTerms terms = createLoanTerms(loan, 1);
+                LoanTermFee lateFee = new LoanTermFee(
+                                terms,
+                                FeeType.LATE,
+                                FeeCalculationType.FIXED,
+                                new BigDecimal("200.00"),
+                                FeeApplicationTiming.AFTER_DUE_DATE,
+                                5);
+                terms.addFee(lateFee);
+                loan.setLoanTerms(terms);
+
+                when(loanRepository.findActiveLoansWithOutstandingInstallments())
+                                .thenReturn(List.of(loan));
+                when(installmentRepository.findOutstandingInstallments(schedule.getId()))
+                                .thenReturn(List.of(installment));
+                when(loanFeeRepository.existsByReference(anyString())).thenReturn(false);
+                when(loanFeeCalculator.calculate(lateFee, new BigDecimal("3333.33")))
+                                .thenReturn(new BigDecimal("200.00"));
+
+                overdueLoanSweepService.execute(LocalDate.of(2026, 9, 14));
+                overdueLoanSweepService.execute(LocalDate.of(2026, 9, 15));
+
+                verify(loanFeeRepository).save(any(LoanFee.class));
+                verify(loanFeeCalculator).calculate(lateFee, new BigDecimal("3333.33"));
         }
 
         @Test
@@ -544,7 +580,7 @@ class OverdueLoanSweepServiceTest {
                                 LocalDate.of(2026, 9, 18),
                                 new BigDecimal("1000.00"));
 
-                when(loanRepository.findOpenLoansWithOutstandingInstallments())
+                when(loanRepository.findActiveLoansWithOutstandingInstallments())
                                 .thenReturn(List.of(loan));
 
                 when(installmentRepository.findOutstandingInstallments(schedule.getId()))
@@ -587,7 +623,7 @@ class OverdueLoanSweepServiceTest {
                                 LocalDate.of(2026, 9, 18),
                                 new BigDecimal("1000.00"));
 
-                when(loanRepository.findOpenLoansWithOutstandingInstallments())
+                when(loanRepository.findActiveLoansWithOutstandingInstallments())
                                 .thenReturn(List.of(loan));
 
                 when(installmentRepository.findOutstandingInstallments(schedule.getId()))

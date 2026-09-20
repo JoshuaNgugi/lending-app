@@ -51,7 +51,7 @@ public class OverdueLoanSweepService {
     @Transactional
     public void execute(LocalDate today) {
 
-        List<Loan> loans = loanRepository.findOpenLoansWithOutstandingInstallments();
+        List<Loan> loans = loanRepository.findActiveLoansWithOutstandingInstallments();
 
         for (Loan loan : loans) {
             processLoan(loan, today);
