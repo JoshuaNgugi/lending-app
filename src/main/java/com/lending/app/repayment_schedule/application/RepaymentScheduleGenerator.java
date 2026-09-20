@@ -3,6 +3,7 @@ package com.lending.app.repayment_schedule.application;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 import com.lending.app.loan.domain.Loan;
 import com.lending.app.loan.domain.LoanTerms;
+import com.lending.app.product.domain.BillingMode;
 import com.lending.app.product.domain.LoanStructure;
 import com.lending.app.product.domain.TenureUnit;
 import com.lending.app.repayment_schedule.domain.InstallmentData;
@@ -62,6 +64,10 @@ public class RepaymentScheduleGenerator {
     }
 
     private LocalDate calculateDueDate(Loan loan, LoanTerms loanTerms, int installmentNumber, int totalInstallments) {
+        if (loanTerms.getBillingMode() == BillingMode.CONSOLIDATED) {
+            return calculateConsolidatedDueDate(loan, loanTerms, installmentNumber);
+        }
+
         if (installmentNumber == totalInstallments) {
             return loan.getMaturityDate();
         }
@@ -75,5 +81,27 @@ public class RepaymentScheduleGenerator {
         long daysBetween = loanTerms.getTenureValue() / totalInstallments;
 
         return loan.getDisbursementDate().plusDays(daysBetween * installmentNumber);
+    }
+
+    private LocalDate calculateConsolidatedDueDate(Loan loan, LoanTerms terms, int installmentNumber) {
+        Integer billingDay = terms.getBillingDay();
+
+        if (billingDay == null) {
+            throw new IllegalStateException("Billing day is required for consolidated billing");
+        }
+
+        LocalDate disbursementDate = loan.getDisbursementDate();
+        YearMonth billingMonth = YearMonth.from(disbursementDate);
+        LocalDate firstBillingDate = billingMonth.atDay(billingDay);
+
+        if (!firstBillingDate.isAfter(disbursementDate)) {
+            firstBillingDate = billingMonth.plusMonths(1).atDay(billingDay);
+        }
+
+        LocalDate dueDate = firstBillingDate.plusMonths(installmentNumber - 1L);
+
+        return dueDate.isAfter(loan.getMaturityDate())
+                ? loan.getMaturityDate()
+                : dueDate;
     }
 }
