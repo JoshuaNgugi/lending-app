@@ -1,5 +1,16 @@
 package com.lending.app.customer.api;
 
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -11,17 +22,6 @@ import com.lending.app.customer.application.UpdateCustomerService;
 import com.lending.app.customer.domain.Customer;
 
 import jakarta.validation.Valid;
-
-import java.util.UUID;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequestMapping("/api/v1/customers")
@@ -52,6 +52,11 @@ public class CustomerController {
         Customer customer = getCustomerService.execute(customerId);
 
         return toResponse(customer);
+    }
+
+    @GetMapping
+    public List<CustomerResponse> getAll() {
+        return getCustomerService.executeAll().stream().map(this::toResponse).toList();
     }
 
     @PatchMapping("{customerId}")

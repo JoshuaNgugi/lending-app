@@ -1,5 +1,6 @@
 package com.lending.app.customer.application;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -24,5 +25,9 @@ public class GetCustomerService {
         return customerRepository.findById(customerId)
                 .orElseThrow(() -> new CustomerNotFoundException(
                         "Customer with ID: " + customerId + " not found"));
+    }
+
+    public List<Customer> executeAll() {
+        return customerRepository.findAll();
     }
 }
