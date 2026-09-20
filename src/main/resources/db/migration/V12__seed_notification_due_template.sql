@@ -5,7 +5,8 @@ VALUES (
     gen_random_uuid(),
     'payment-due',
     'Payment due reminder',
-    'Hello {{firstName}}, your loan {{productName}} has a payment of KES {{amount}} due on {{dueDate}}.'
+    'Hello {{firstName}}, your loan {{productName}} has a payment of KES {{amount}} due on {{dueDate}}.',
+    TRUE
 );
 
 INSERT INTO notification_rules (

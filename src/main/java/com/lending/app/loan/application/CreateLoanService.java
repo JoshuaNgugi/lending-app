@@ -57,7 +57,7 @@ public class CreateLoanService {
         }
 
         loanLimitValidator.validate(customer, request.principal());
-        
+
         Loan loan = new Loan(customer, product, request.principal());
 
         Loan savedLoan = loanRepository.save(loan);
