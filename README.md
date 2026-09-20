@@ -88,3 +88,32 @@ The following environment variables override the local defaults:
 | `loan.overdue-sweep.cron` | `0 */5 * * * *` | Overdue and write-off sweep schedule |
 | `loan.payment-due-reminder.days-before` | `1` | Days before due date for reminders |
 | `loan.payment-due-reminder.cron` | `0 0 8 * * *` | Payment reminder schedule |
+
+## API Conventions
+
+All endpoints are versioned under `/api/v1` and use JSON request/response bodies.
+
+Successful responses:
+
+- `201 Created`: customer, product, loan, and repayment creation.
+- `200 OK`: reads, updates, loan-limit changes, product deactivation, disbursement, and cancellation.
+
+Error responses:
+
+- `400 Bad Request`: validation failure, malformed JSON, invalid parameter, or invalid input.
+- `404 Not Found`: requested resource does not exist.
+- `409 Conflict`: business-rule conflict, duplicate data, or database constraint conflict.
+
+Error JSON uses this contract:
+
+```json
+{
+   "code": "VALIDATION_FAILED",
+   "message": "Request validation failed",
+   "fieldErrors": {
+      "principal": "must be greater than 0"
+   }
+}
+```
+
+`fieldErrors` is an empty object when the error is not associated with a specific request field.
