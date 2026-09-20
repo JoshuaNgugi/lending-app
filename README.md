@@ -246,3 +246,110 @@ Supported fee types include service, daily, and late fees. Calculation types sup
 `POST /api/v1/products/{productId}/deactivate`
 
 Product terms are copied into loan terms when a loan is disbursed, so later product changes do not alter existing loans.
+
+### Loans
+
+#### Create a loan
+
+`POST /api/v1/loans`
+
+```json
+{
+   "customerId": "00000000-0000-0000-0000-000000000001",
+   "productId": "00000000-0000-0000-0000-000000000002",
+   "principal": 10000.00
+}
+```
+
+The customer and product must be active, and the principal must fit within the customer available loan limit. New loans start in `CREATED` status.
+
+#### View a loan
+
+`GET /api/v1/loans/{loanId}`
+
+#### Disburse a loan
+
+`POST /api/v1/loans/{loanId}/disburse`
+
+Disbursement snapshots product terms, calculates maturity, creates the repayment schedule, applies original fees, and transitions the loan to `OPEN`.
+
+#### Cancel a loan
+
+`POST /api/v1/loans/{loanId}/cancel`
+
+Cancellation is allowed only while the loan is `CREATED` and transitions it to `CANCELLED`.
+
+Loan statuses are `CREATED`, `OPEN`, `OVERDUE`, `CLOSED`, `CANCELLED`, and `WRITTEN_OFF`.
+
+### Repayments
+
+#### Create a repayment
+
+`POST /api/v1/loans/{loanId}/repayments`
+
+```json
+{
+   "amount": 4000.00,
+   "reference": "PAY-0001",
+   "channel": "MOBILE_MONEY"
+}
+```
+
+Repayments:
+
+- Reject duplicate references.
+- Allocate fees before principal.
+- Support partial payments.
+- Reject overpayments.
+- Close the loan when all outstanding fees and principal are paid.
+- Serialize concurrent repayments for the same loan with a pessimistic database lock.
+
+## Scheduled Processing
+
+### Overdue and write-off sweep
+
+The overdue scheduler runs according to `loan.overdue-sweep.cron` and:
+
+1. Finds open or overdue loans with outstanding installments.
+2. Marks installments overdue after the configured grace period.
+3. Applies eligible late fees once per installment and trigger day.
+4. Publishes an overdue notification event when a loan first becomes overdue.
+5. Writes off an overdue loan when its configured write-off age is reached and it still has an outstanding balance.
+
+Write-off is disabled when `writeOffAfterDays` is null. A fully repaid loan cannot be written off.
+
+### Payment-due reminders
+
+The payment reminder scheduler runs according to `loan.payment-due-reminder.cron` and publishes reminder events for installments due within the configured number of days.
+
+## Notifications
+
+Notifications are event-driven. Rules, templates, customer preferences, and channels are modeled in the notification module. Supported channel abstractions are email, SMS, and push.
+
+For this assessment, I implemented concrete senders log delivery messages rather than integrating external providers to contain the scope within the requirements of the assessment. A `Strategy + Factory` pattern was used for channel selection and demonstrate adaptability.
+
+Notification migrations seed initial configuration and a payment-due template. Provider delivery, durable delivery history, retries, and idempotency are intentionally outside the current scope.
+
+## Database Migrations
+
+Flyway migrations are in `src/main/resources/db/migration` and create the database autonomously. They cover:
+
+- Customers and initial schema
+- Loan products and product fees
+- Loans and loan terms
+- Repayment schedules and installments
+- Repayments and repayment allocations
+- Loan fee constraints
+- Notification rules and templates
+- Customer notification preferences
+- Customer loan limits
+- Write-off policy fields
+
+## Design and Reliability Notes
+
+- UUID identifiers support future distributed ownership without requiring shared numeric sequences.
+- Product terms are snapshotted into loan terms at disbursement.
+- Customer loan-limit validation is serialized per customer with a pessimistic write lock.
+- Repayment processing is serialized per loan with a pessimistic write lock.
+- Database uniqueness and foreign-key constraints provide a final integrity boundary.
+- Domain state transitions reject invalid lifecycle operations.
