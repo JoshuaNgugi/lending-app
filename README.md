@@ -27,3 +27,64 @@ com.lending.app
 |-- notification       Events, rules, templates, preferences, and channels
 
 ```
+
+The application uses one PostgreSQL database. Flyway owns schema creation and Hibernate runs with `ddl-auto=validate`, so application startup validates the schema without mutating it.
+
+## Prerequisites
+
+- Java 21
+- Docker Desktop
+
+## Run Locally
+
+Once the project is cloned start PostgreSQL from the repository root:
+
+```bash
+docker compose up -d
+```
+
+Start and run the application using VS Code (recommended) or on the default Spring Boot port:
+
+```bash
+# macOS/Linux
+./gradlew bootRun
+
+# Windows PowerShell
+.\gradlew.bat bootRun
+```
+
+The API is available at `http://localhost:8080`.
+
+Flyway runs automatically during application startup. PostgreSQL is exposed on host port `5433` with these development-only defaults:
+
+```text
+Database: lending_app
+Username: lending_user
+Password: lending_password
+JDBC URL: jdbc:postgresql://localhost:5433/lending_app
+```
+
+Stop the database with:
+
+```bash
+docker compose down
+```
+
+To remove the local database volume and recreate the schema from scratch:
+
+```bash
+docker compose down -v
+docker compose up -d
+```
+## Configuration
+
+The following environment variables override the local defaults:
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `DB_URL` | `jdbc:postgresql://localhost:5433/lending_app` | PostgreSQL JDBC URL |
+| `DB_USER` | `lending_user` | Database username |
+| `DB_PASSWORD` | `lending_password` | Database password |
+| `loan.overdue-sweep.cron` | `0 */5 * * * *` | Overdue and write-off sweep schedule |
+| `loan.payment-due-reminder.days-before` | `1` | Days before due date for reminders |
+| `loan.payment-due-reminder.cron` | `0 0 8 * * *` | Payment reminder schedule |
