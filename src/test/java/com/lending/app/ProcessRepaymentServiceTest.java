@@ -38,15 +38,15 @@ import com.lending.app.customer.domain.CustomerSegment;
 import com.lending.app.notification.event.NotificationEvent;
 import com.lending.app.notification.event.NotificationEventType;
 import com.lending.app.product.domain.FeeType;
-import com.lending.app.product.domain.ProcessRepaymentService;
+import com.lending.app.repayment.application.ProcessRepaymentService;
 import com.lending.app.repayment.domain.Repayment;
 import com.lending.app.repayment.domain.RepaymentAllocation;
-import com.lending.app.repayment.repayment.RepaymentAllocationRepository;
-import com.lending.app.repayment.repayment.RepaymentRepository;
+import com.lending.app.repayment.persistence.RepaymentAllocationRepository;
+import com.lending.app.repayment.persistence.RepaymentRepository;
 import com.lending.app.repayment_schedule.domain.Installment;
 import com.lending.app.repayment_schedule.domain.InstallmentStatus;
 import com.lending.app.repayment_schedule.domain.RepaymentSchedule;
-import com.lending.app.repayment_schedule.repository.InstallmentRepository;
+import com.lending.app.repayment_schedule.persistence.InstallmentRepository;
 import com.lending.app.shared.exception.ResourceNotFoundException;
 
 @ExtendWith(MockitoExtension.class)

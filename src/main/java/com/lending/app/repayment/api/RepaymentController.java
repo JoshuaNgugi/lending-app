@@ -1,4 +1,4 @@
-package com.lending.app.repayment.repayment;
+package com.lending.app.repayment.api;
 
 import java.util.List;
 import java.util.UUID;
@@ -11,11 +11,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.lending.app.product.domain.ProcessRepaymentService;
-import com.lending.app.repayment.api.CreateRepaymentRequest;
-import com.lending.app.repayment.api.RepaymentAllocationResponse;
-import com.lending.app.repayment.api.RepaymentResponse;
+import com.lending.app.repayment.application.ProcessRepaymentService;
 import com.lending.app.repayment.domain.Repayment;
+import com.lending.app.repayment.persistence.RepaymentAllocationRepository;
 
 import jakarta.validation.Valid;
 

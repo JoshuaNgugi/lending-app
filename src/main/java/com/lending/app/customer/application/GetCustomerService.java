@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.lending.app.customer.domain.Customer;
 import com.lending.app.customer.exception.CustomerNotFoundException;
-import com.lending.app.customer.repository.CustomerRepository;
+import com.lending.app.customer.persistence.CustomerRepository;
 
 @Service
 @Transactional(readOnly = true)

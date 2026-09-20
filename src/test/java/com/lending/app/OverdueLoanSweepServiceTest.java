@@ -48,7 +48,7 @@ import com.lending.app.product.domain.TenureUnit;
 import com.lending.app.repayment_schedule.domain.Installment;
 import com.lending.app.repayment_schedule.domain.InstallmentStatus;
 import com.lending.app.repayment_schedule.domain.RepaymentSchedule;
-import com.lending.app.repayment_schedule.repository.InstallmentRepository;
+import com.lending.app.repayment_schedule.persistence.InstallmentRepository;
 
 @ExtendWith(MockitoExtension.class)
 class OverdueLoanSweepServiceTest {

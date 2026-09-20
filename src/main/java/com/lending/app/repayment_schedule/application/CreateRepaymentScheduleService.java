@@ -9,8 +9,8 @@ import com.lending.app.loan.domain.LoanTerms;
 import com.lending.app.repayment_schedule.domain.Installment;
 import com.lending.app.repayment_schedule.domain.InstallmentData;
 import com.lending.app.repayment_schedule.domain.RepaymentSchedule;
-import com.lending.app.repayment_schedule.repository.InstallmentRepository;
-import com.lending.app.repayment_schedule.repository.RepaymentScheduleRepository;
+import com.lending.app.repayment_schedule.persistence.InstallmentRepository;
+import com.lending.app.repayment_schedule.persistence.RepaymentScheduleRepository;
 
 import jakarta.transaction.Transactional;
 

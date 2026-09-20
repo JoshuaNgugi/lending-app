@@ -6,7 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.lending.app.customer.api.CreateCustomerRequest;
 import com.lending.app.customer.domain.Customer;
 import com.lending.app.customer.exception.CustomerAlreadyExistsException;
-import com.lending.app.customer.repository.CustomerRepository;
+import com.lending.app.customer.persistence.CustomerRepository;
 
 @Service
 @Transactional

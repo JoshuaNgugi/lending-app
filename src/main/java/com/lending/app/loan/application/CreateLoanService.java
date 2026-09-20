@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.lending.app.customer.domain.Customer;
 import com.lending.app.customer.domain.CustomerStatus;
-import com.lending.app.customer.repository.CustomerRepository;
+import com.lending.app.customer.persistence.CustomerRepository;
 import com.lending.app.loan.api.CreateLoanRequest;
 import com.lending.app.loan.domain.Loan;
 import com.lending.app.loan.repository.LoanRepository;

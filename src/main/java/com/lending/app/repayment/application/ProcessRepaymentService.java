@@ -1,4 +1,4 @@
-package com.lending.app.product.domain;
+package com.lending.app.repayment.application;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -19,11 +19,11 @@ import com.lending.app.notification.event.NotificationEvent;
 import com.lending.app.notification.event.NotificationEventType;
 import com.lending.app.repayment.domain.Repayment;
 import com.lending.app.repayment.domain.RepaymentAllocation;
-import com.lending.app.repayment.repayment.RepaymentAllocationRepository;
-import com.lending.app.repayment.repayment.RepaymentRepository;
+import com.lending.app.repayment.persistence.RepaymentAllocationRepository;
+import com.lending.app.repayment.persistence.RepaymentRepository;
 import com.lending.app.repayment_schedule.domain.Installment;
 import com.lending.app.repayment_schedule.domain.RepaymentSchedule;
-import com.lending.app.repayment_schedule.repository.InstallmentRepository;
+import com.lending.app.repayment_schedule.persistence.InstallmentRepository;
 import com.lending.app.shared.exception.ResourceNotFoundException;
 
 @Service

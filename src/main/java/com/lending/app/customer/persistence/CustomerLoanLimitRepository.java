@@ -1,4 +1,4 @@
-package com.lending.app.customer.repository;
+package com.lending.app.customer.persistence;
 
 import java.util.List;
 import java.util.Optional;

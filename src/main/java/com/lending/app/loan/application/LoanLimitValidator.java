@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 import com.lending.app.customer.domain.Customer;
 import com.lending.app.customer.domain.CustomerLoanLimit;
 import com.lending.app.customer.domain.CustomerLoanLimitStatus;
-import com.lending.app.customer.repository.CustomerLoanLimitRepository;
+import com.lending.app.customer.persistence.CustomerLoanLimitRepository;
 import com.lending.app.loan.repository.LoanRepository;
 
 @Component

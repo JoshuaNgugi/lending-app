@@ -1,4 +1,4 @@
-package com.lending.app.repayment.repayment;
+package com.lending.app.repayment.persistence;
 
 import java.util.UUID;
 

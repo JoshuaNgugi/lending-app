@@ -23,7 +23,7 @@ import org.springframework.context.ApplicationEventPublisher;
 
 import com.lending.app.customer.domain.Customer;
 import com.lending.app.customer.domain.CustomerSegment;
-import com.lending.app.customer.repository.CustomerRepository;
+import com.lending.app.customer.persistence.CustomerRepository;
 import com.lending.app.loan.api.CreateLoanRequest;
 import com.lending.app.loan.application.CreateLoanService;
 import com.lending.app.loan.domain.Loan;

@@ -11,7 +11,7 @@ import com.lending.app.loan.domain.Loan;
 import com.lending.app.notification.event.NotificationEvent;
 import com.lending.app.notification.event.NotificationEventType;
 import com.lending.app.repayment_schedule.domain.Installment;
-import com.lending.app.repayment_schedule.repository.InstallmentRepository;
+import com.lending.app.repayment_schedule.persistence.InstallmentRepository;
 
 /**
  * Service responsible for sending payment due notifications to customers.

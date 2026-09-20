@@ -1,4 +1,4 @@
-package com.lending.app.repayment_schedule.repository;
+package com.lending.app.repayment_schedule.persistence;
 
 import java.util.UUID;
 

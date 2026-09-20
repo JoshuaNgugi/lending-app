@@ -9,7 +9,7 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import com.lending.app.customer.domain.Customer;
-import com.lending.app.customer.repository.CustomerRepository;
+import com.lending.app.customer.persistence.CustomerRepository;
 import com.lending.app.loan.domain.Loan;
 import com.lending.app.loan.repository.LoanRepository;
 import com.lending.app.notification.channel.NotificationSender;
