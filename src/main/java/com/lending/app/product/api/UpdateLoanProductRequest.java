@@ -24,7 +24,9 @@ public record UpdateLoanProductRequest(
 
         @Min(1) @Max(28) Integer billingDay,
 
-        @PositiveOrZero Integer gracePeriodDays
+        @PositiveOrZero Integer gracePeriodDays,
+
+        @Positive Integer writeOffAfterDays
 
 ) {
 

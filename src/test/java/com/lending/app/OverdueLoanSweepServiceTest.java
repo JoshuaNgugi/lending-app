@@ -32,6 +32,7 @@ import com.lending.app.loan.application.LoanFeeCalculator;
 import com.lending.app.loan.application.OverdueLoanSweepService;
 import com.lending.app.loan.domain.Loan;
 import com.lending.app.loan.domain.LoanFee;
+import com.lending.app.loan.domain.LoanStatus;
 import com.lending.app.loan.domain.LoanTermFee;
 import com.lending.app.loan.domain.LoanTerms;
 import com.lending.app.loan.repository.LoanFeeRepository;
@@ -635,5 +636,99 @@ class OverdueLoanSweepServiceTest {
                 overdueLoanSweepService.execute(today);
 
                 verify(eventPublisher, never()).publishEvent(any(NotificationEvent.class));
+        }
+
+        @Test
+        void shouldWriteOffOverdueLoanAfterConfiguredPolicyAge() {
+
+                Loan loan = createOpenLoan();
+                RepaymentSchedule schedule = new RepaymentSchedule(loan);
+                loan.setRepaymentSchedule(schedule);
+
+                Installment installment = new Installment(
+                                schedule,
+                                1,
+                                LocalDate.of(2026, 9, 10),
+                                new BigDecimal("1000.00"));
+                LoanTerms terms = new LoanTerms(
+                                loan,
+                                3,
+                                TenureUnit.MONTHS,
+                                LoanStructure.INSTALLMENT,
+                                BillingMode.INDIVIDUAL,
+                                null,
+                                3,
+                                3,
+                                90);
+                loan.setLoanTerms(terms);
+
+                when(loanRepository.findActiveLoansWithOutstandingInstallments()).thenReturn(List.of(loan));
+                when(installmentRepository.findOutstandingInstallments(schedule.getId()))
+                                .thenReturn(List.of(installment));
+                when(loanFeeRepository.findOutstandingFees(loan.getId())).thenReturn(List.of());
+
+                overdueLoanSweepService.execute(LocalDate.of(2026, 12, 13));
+
+                assertEquals(LoanStatus.WRITTEN_OFF, loan.getStatus());
+                verify(eventPublisher).publishEvent(any(NotificationEvent.class));
+                verify(loanRepository, org.mockito.Mockito.times(2)).save(loan);
+        }
+
+        @Test
+        void shouldNotWriteOffBeforeConfiguredPolicyAge() {
+
+                Loan loan = createOpenLoan();
+                RepaymentSchedule schedule = new RepaymentSchedule(loan);
+                loan.setRepaymentSchedule(schedule);
+
+                Installment installment = new Installment(
+                                schedule,
+                                1,
+                                LocalDate.of(2026, 9, 10),
+                                new BigDecimal("1000.00"));
+                loan.setLoanTerms(new LoanTerms(
+                                loan,
+                                3,
+                                TenureUnit.MONTHS,
+                                LoanStructure.INSTALLMENT,
+                                BillingMode.INDIVIDUAL,
+                                null,
+                                3,
+                                3,
+                                90));
+
+                when(loanRepository.findActiveLoansWithOutstandingInstallments()).thenReturn(List.of(loan));
+                when(installmentRepository.findOutstandingInstallments(schedule.getId()))
+                                .thenReturn(List.of(installment));
+
+                overdueLoanSweepService.execute(LocalDate.of(2026, 12, 11));
+
+                assertEquals(LoanStatus.OVERDUE, loan.getStatus());
+                verify(loanRepository).save(loan);
+                verify(loanFeeRepository, never()).findOutstandingFees(loan.getId());
+        }
+
+        @Test
+        void shouldNotWriteOffWhenPolicyIsDisabled() {
+
+                Loan loan = createOpenLoan();
+                RepaymentSchedule schedule = new RepaymentSchedule(loan);
+                loan.setRepaymentSchedule(schedule);
+
+                Installment installment = new Installment(
+                                schedule,
+                                1,
+                                LocalDate.of(2026, 9, 10),
+                                new BigDecimal("1000.00"));
+                loan.setLoanTerms(createLoanTerms(loan, 3));
+
+                when(loanRepository.findActiveLoansWithOutstandingInstallments()).thenReturn(List.of(loan));
+                when(installmentRepository.findOutstandingInstallments(schedule.getId()))
+                                .thenReturn(List.of(installment));
+
+                overdueLoanSweepService.execute(LocalDate.of(2027, 1, 1));
+
+                assertEquals(LoanStatus.OVERDUE, loan.getStatus());
+                verify(loanFeeRepository, never()).findOutstandingFees(loan.getId());
         }
 }

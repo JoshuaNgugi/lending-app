@@ -84,7 +84,7 @@ public class DisburseLoanService {
 
         LoanTerms loanTerms = new LoanTerms(loan, product.getTenureValue(), product.getTenureUnit(), product.getStructure(),
                 product.getBillingMode(), product.getBillingDay(), product.getGracePeriodDays(),
-                product.getInstallmentCount());
+            product.getInstallmentCount(), product.getWriteOffAfterDays());
 
         loanTermsRepository.save(loanTerms);
 

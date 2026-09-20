@@ -169,6 +169,15 @@ public class Loan {
         this.updatedAt = Instant.now();
     }
 
+    public void writeOff() {
+        if (status != LoanStatus.OVERDUE) {
+            throw new IllegalStateException("Only overdue loans can be written off");
+        }
+
+        this.status = LoanStatus.WRITTEN_OFF;
+        this.updatedAt = Instant.now();
+    }
+
     // Returns boolean to let us know whether a loan transition actually happened
     // This helps when publishing the loan overdue event in that we only want
     // the event published when the loan actually transitions feom OPEN to OVERDUE

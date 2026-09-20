@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.lending.app.loan.domain.Loan;
 import com.lending.app.loan.domain.LoanFee;
+import com.lending.app.loan.domain.LoanStatus;
 import com.lending.app.loan.domain.LoanTermFee;
 import com.lending.app.loan.domain.LoanTerms;
 import com.lending.app.loan.repository.LoanFeeRepository;
@@ -103,7 +105,47 @@ public class OverdueLoanSweepService {
                         loan.getId(), loan.getCustomer().getId(),
                         Map.of()));
             }
+
+            writeOffIfEligible(loan, installments, terms, today);
         }
+    }
+
+    private void writeOffIfEligible(
+            Loan loan,
+            List<Installment> outstandingInstallments,
+            LoanTerms terms,
+            LocalDate today) {
+
+        Integer writeOffAfterDays = terms.getWriteOffAfterDays();
+
+        if (writeOffAfterDays == null || loan.getStatus() != LoanStatus.OVERDUE) {
+            return;
+        }
+
+        Optional<LocalDate> oldestOverdueDate = outstandingInstallments.stream()
+                .filter(installment -> isOverdue(installment, terms.getGracePeriodDays(), today))
+                .map(installment -> installment.getDueDate().plusDays(terms.getGracePeriodDays()))
+                .min(LocalDate::compareTo);
+
+        if (oldestOverdueDate.isEmpty()
+                || today.isBefore(oldestOverdueDate.get().plusDays(writeOffAfterDays))) {
+            return;
+        }
+
+        BigDecimal outstandingPrincipal = outstandingInstallments.stream()
+                .map(Installment::getOutstandingPrincipal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal outstandingFees = loanFeeRepository.findOutstandingFees(loan.getId()).stream()
+                .map(LoanFee::getOutstandingAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        if (outstandingPrincipal.signum() <= 0 && outstandingFees.signum() <= 0) {
+            return;
+        }
+
+        loan.writeOff();
+        loanRepository.save(loan);
     }
 
     private boolean isOverdue(Installment installment, int gracePeriodDays, LocalDate today) {

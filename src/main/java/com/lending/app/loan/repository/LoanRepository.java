@@ -36,7 +36,8 @@ public interface LoanRepository extends JpaRepository<Loan, UUID> {
                 com.lending.app.loan.domain.LoanStatus.OVERDUE)
             AND i.status IN (
                 com.lending.app.repayment_schedule.domain.InstallmentStatus.PENDING,
-                com.lending.app.repayment_schedule.domain.InstallmentStatus.PARTIALLY_PAID)
+                com.lending.app.repayment_schedule.domain.InstallmentStatus.PARTIALLY_PAID,
+                com.lending.app.repayment_schedule.domain.InstallmentStatus.OVERDUE)
             """)
     List<Loan> findActiveLoansWithOutstandingInstallments();
 

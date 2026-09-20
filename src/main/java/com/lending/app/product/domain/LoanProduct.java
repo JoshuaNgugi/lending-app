@@ -60,6 +60,9 @@ public class LoanProduct {
     @Column(name = "installment_count")
     private Integer installmentCount;
 
+    @Column(name = "write_off_after_days")
+    private Integer writeOffAfterDays;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
@@ -80,6 +83,22 @@ public class LoanProduct {
             Integer billingDay,
             Integer gracePeriodDays,
             Integer installmentCount) {
+            this(code, name, description, tenureValue, tenureUnit, structure, billingMode, billingDay,
+                gracePeriodDays, installmentCount, null);
+            }
+
+            public LoanProduct(
+                String code,
+                String name,
+                String description,
+                Integer tenureValue,
+                TenureUnit tenureUnit,
+                LoanStructure structure,
+                BillingMode billingMode,
+                Integer billingDay,
+                Integer gracePeriodDays,
+                Integer installmentCount,
+                Integer writeOffAfterDays) {
         this.code = code;
         this.name = name;
         this.description = description;
@@ -91,6 +110,7 @@ public class LoanProduct {
         this.gracePeriodDays = gracePeriodDays;
         this.status = ProductStatus.ACTIVE;
         this.installmentCount = installmentCount;
+        this.writeOffAfterDays = writeOffAfterDays;
         this.createdAt = Instant.now();
         this.updatedAt = Instant.now();
     }
@@ -143,6 +163,10 @@ public class LoanProduct {
         return installmentCount;
     }
 
+    public Integer getWriteOffAfterDays() {
+        return writeOffAfterDays;
+    }
+
     public Instant getCreatedAt() {
         return createdAt;
     }
@@ -159,7 +183,8 @@ public class LoanProduct {
             LoanStructure structure,
             BillingMode billingMode,
             Integer billingDay,
-            Integer gracePeriodDays) {
+            Integer gracePeriodDays,
+            Integer writeOffAfterDays) {
         this.name = name;
         this.description = description;
         this.tenureValue = tenureValue;
@@ -168,6 +193,7 @@ public class LoanProduct {
         this.billingMode = billingMode;
         this.billingDay = billingDay;
         this.gracePeriodDays = gracePeriodDays;
+        this.writeOffAfterDays = writeOffAfterDays;
         this.updatedAt = Instant.now();
     }
 

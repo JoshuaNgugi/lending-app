@@ -38,7 +38,8 @@ public class UpdateLoanProductService {
                 request.structure(),
                 request.billingMode(),
                 request.billingDay(),
-                request.gracePeriodDays());
+                request.gracePeriodDays(),
+                request.writeOffAfterDays());
 
         return loanProductRepository.save(product);
     }

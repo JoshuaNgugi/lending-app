@@ -79,7 +79,7 @@ public class LoanProductController {
         return new LoanProductResponse(product.getId(), product.getCode(), product.getName(),
                 product.getDescription(), product.getStatus(), product.getTenureValue(), product.getTenureUnit(),
                 product.getStructure(), product.getBillingMode(), product.getBillingDay(),
-                product.getGracePeriodDays());
+                product.getGracePeriodDays(), product.getWriteOffAfterDays());
     }
 
 }

@@ -58,6 +58,9 @@ public class LoanTerms {
     @Column(name = "installment_count")
     private Integer installmentCount;
 
+    @Column(name = "write_off_after_days")
+    private Integer writeOffAfterDays;
+
     @OneToMany(mappedBy = "loanTerms", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<LoanTermFee> fees = new ArrayList<>();
 
@@ -73,6 +76,20 @@ public class LoanTerms {
             Integer billingDay,
             Integer gracePeriodDays,
             Integer installmentCount) {
+            this(loan, tenureValue, tenureUnit, structure, billingMode, billingDay, gracePeriodDays,
+                installmentCount, null);
+            }
+
+            public LoanTerms(
+                Loan loan,
+                Integer tenureValue,
+                TenureUnit tenureUnit,
+                LoanStructure structure,
+                BillingMode billingMode,
+                Integer billingDay,
+                Integer gracePeriodDays,
+                Integer installmentCount,
+                Integer writeOffAfterDays) {
         this.loan = loan;
         this.tenureValue = tenureValue;
         this.tenureUnit = tenureUnit;
@@ -81,6 +98,7 @@ public class LoanTerms {
         this.billingDay = billingDay;
         this.gracePeriodDays = gracePeriodDays;
         this.installmentCount = installmentCount;
+        this.writeOffAfterDays = writeOffAfterDays;
     }
 
     public UUID getId() {
@@ -117,6 +135,10 @@ public class LoanTerms {
 
     public Integer getInstallmentCount() {
         return installmentCount;
+    }
+
+    public Integer getWriteOffAfterDays() {
+        return writeOffAfterDays;
     }
 
     public List<LoanTermFee> getFees() {

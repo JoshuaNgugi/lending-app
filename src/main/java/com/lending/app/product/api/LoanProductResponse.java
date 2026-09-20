@@ -18,6 +18,7 @@ public record LoanProductResponse(
         LoanStructure structure,
         BillingMode billingMode,
         Integer billingDay,
-        Integer gracePeriodDays) {
+        Integer gracePeriodDays,
+        Integer writeOffAfterDays) {
 
 }

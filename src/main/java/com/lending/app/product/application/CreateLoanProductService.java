@@ -48,7 +48,8 @@ public class CreateLoanProductService {
                 request.billingMode(),
                 request.billingDay(),
                 request.gracePeriodDays(),
-                request.installmentCount());
+                request.installmentCount(),
+                request.writeOffAfterDays());
 
         LoanProduct saved = loanProductRepository.save(product);
 

@@ -36,5 +36,7 @@ public record CreateLoanProductRequest(
 
                 List<@Valid ProductFeeRequest> fees,
 
-                @Positive Integer installmentCount) {
+                @Positive Integer installmentCount,
+
+                @Positive Integer writeOffAfterDays) {
 }
