@@ -69,7 +69,7 @@ public class CustomerController {
 
     @PutMapping("/{customerId}/loan-limit")
     public CustomerLoanLimitResponse setLoanLimit(
-            @PathVariable UUID customerId,
+            @PathVariable("customerId") UUID customerId,
             @Valid @RequestBody SetCustomerLoanLimitRequest request) {
 
         CustomerLoanLimitDetails details = customerLoanLimitService.setLimit(
@@ -82,7 +82,7 @@ public class CustomerController {
     }
 
     @GetMapping("/{customerId}/loan-limit")
-    public CustomerLoanLimitResponse getLoanLimit(@PathVariable UUID customerId) {
+    public CustomerLoanLimitResponse getLoanLimit(@PathVariable("customerId") UUID customerId) {
         return toCustomerLoanLimitResponse(customerLoanLimitService.getLimit(customerId));
     }
 
