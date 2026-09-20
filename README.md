@@ -117,3 +117,45 @@ Error JSON uses this contract:
 ```
 
 `fieldErrors` is an empty object when the error is not associated with a specific request field.
+
+## API Reference
+
+### Customers
+
+#### Create a customer
+
+`POST /api/v1/customers`
+
+```json
+{
+   "firstName": "Maimuna",
+   "lastName": "Maksuudi",
+   "email": "maimuna@example.com",
+   "phoneNumber": "254717000002",
+   "segment": "RETAIL"
+}
+```
+
+`segment` values include `RETAIL`, `SALARIED` and `BUSINESS`.
+
+#### View a customer
+
+`GET /api/v1/customers/{customerId}`
+
+#### List customers
+
+`GET /api/v1/customers`
+
+#### Update customer details
+
+`PATCH /api/v1/customers/{customerId}`
+
+All fields are optional, but supplied values are validated:
+
+```json
+{
+   "firstName": "Maimuna",
+   "phoneNumber": "254700000001",
+   "segment": "BUSINESS"
+}
+```
