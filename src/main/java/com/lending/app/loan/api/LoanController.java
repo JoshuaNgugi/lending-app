@@ -56,19 +56,19 @@ public class LoanController {
     }
 
     @PostMapping("/{loanId}/disburse")
-    public LoanResponse disburse(@PathVariable("loanId") UUID loanId) {
+    public ResponseEntity<LoanResponse> disburse(@PathVariable("loanId") UUID loanId) {
 
         Loan loan = disburseLoanService.execute(loanId);
 
-        return toResponse(loan);
+        return ResponseEntity.ok(toResponse(loan));
     }
 
     @PostMapping("/{loanId}/cancel")
-    public LoanResponse cancel(@PathVariable("loanId") UUID loanId) {
+    public ResponseEntity<LoanResponse> cancel(@PathVariable("loanId") UUID loanId) {
 
         Loan loan = cancelLoanService.execute(loanId);
 
-        return toResponse(loan);
+        return ResponseEntity.ok(toResponse(loan));
     }
 
     private LoanResponse toResponse(Loan loan) {

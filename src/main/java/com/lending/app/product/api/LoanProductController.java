@@ -59,20 +59,20 @@ public class LoanProductController {
     }
 
     @PatchMapping("/{productId}")
-    public LoanProductResponse update(@PathVariable("productId") UUID productId,
+    public ResponseEntity<LoanProductResponse> update(@PathVariable("productId") UUID productId,
             @Valid @RequestBody UpdateLoanProductRequest request) {
         LoanProduct product = updateLoanProductService.execute(productId, request);
 
-        return toResponse(product);
+        return ResponseEntity.ok(toResponse(product));
     }
 
     @PostMapping("/{productId}/deactivate")
-    public LoanProductResponse deactivate(
+    public ResponseEntity<LoanProductResponse> deactivate(
             @PathVariable("productId") UUID productId) {
 
         LoanProduct product = deactivateLoanProductService.execute(productId);
 
-        return toResponse(product);
+        return ResponseEntity.ok(toResponse(product));
     }
 
     private LoanProductResponse toResponse(LoanProduct product) {

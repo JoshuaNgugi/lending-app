@@ -61,14 +61,14 @@ public class CustomerController {
 
     @PatchMapping("{customerId}")
     public ResponseEntity<CustomerResponse> patch(@PathVariable("customerId") UUID customerId,
-            @RequestBody UpdateCustomerRequest request) {
+            @Valid @RequestBody UpdateCustomerRequest request) {
 
         Customer customer = updateCustomerService.execute(customerId, request);
         return ResponseEntity.ok(toResponse(customer));
     }
 
     @PutMapping("/{customerId}/loan-limit")
-    public CustomerLoanLimitResponse setLoanLimit(
+    public ResponseEntity<CustomerLoanLimitResponse> setLoanLimit(
             @PathVariable("customerId") UUID customerId,
             @Valid @RequestBody SetCustomerLoanLimitRequest request) {
 
@@ -78,7 +78,7 @@ public class CustomerController {
                 request.currency(),
                 request.reason());
 
-        return toCustomerLoanLimitResponse(details);
+        return ResponseEntity.ok(toCustomerLoanLimitResponse(details));
     }
 
     @GetMapping("/{customerId}/loan-limit")
