@@ -1,4 +1,4 @@
-package com.lending.app.product.repository;
+package com.lending.app.product.persistence;
 
 import java.util.UUID;
 

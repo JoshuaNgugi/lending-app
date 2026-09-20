@@ -12,7 +12,7 @@ import com.lending.app.customer.domain.CustomerLoanLimit;
 import com.lending.app.customer.domain.CustomerLoanLimitStatus;
 import com.lending.app.customer.persistence.CustomerLoanLimitRepository;
 import com.lending.app.customer.persistence.CustomerRepository;
-import com.lending.app.loan.repository.LoanRepository;
+import com.lending.app.loan.persistence.LoanRepository;
 import com.lending.app.shared.exception.ResourceNotFoundException;
 
 @Service

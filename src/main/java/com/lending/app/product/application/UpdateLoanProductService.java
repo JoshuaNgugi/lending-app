@@ -9,7 +9,7 @@ import com.lending.app.product.api.UpdateLoanProductRequest;
 import com.lending.app.product.domain.BillingMode;
 import com.lending.app.product.domain.LoanProduct;
 import com.lending.app.product.exception.LoanProductNotFoundException;
-import com.lending.app.product.repository.LoanProductRepository;
+import com.lending.app.product.persistence.LoanProductRepository;
 
 @Service
 @Transactional

@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.lending.app.loan.domain.Loan;
-import com.lending.app.loan.repository.LoanRepository;
+import com.lending.app.loan.persistence.LoanRepository;
 import com.lending.app.shared.exception.ResourceNotFoundException;
 
 @Service

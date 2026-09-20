@@ -7,7 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.lending.app.product.domain.LoanProduct;
 import com.lending.app.product.exception.LoanProductNotFoundException;
-import com.lending.app.product.repository.LoanProductRepository;
+import com.lending.app.product.persistence.LoanProductRepository;
 
 @Service
 @Transactional

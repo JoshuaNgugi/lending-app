@@ -8,8 +8,8 @@ import com.lending.app.customer.domain.Customer;
 import com.lending.app.notification.channel.NotificationChannel;
 import com.lending.app.notification.domain.NotificationRule;
 import com.lending.app.notification.event.NotificationEventType;
-import com.lending.app.notification.repository.CustomerNotificationPreferenceRepository;
-import com.lending.app.notification.repository.NotificationRuleRepository;
+import com.lending.app.notification.persistence.CustomerNotificationPreferenceRepository;
+import com.lending.app.notification.persistence.NotificationRuleRepository;
 
 @Service
 public class NotificationRuleService {

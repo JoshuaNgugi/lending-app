@@ -11,13 +11,13 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import com.lending.app.customer.domain.Customer;
 import com.lending.app.customer.persistence.CustomerRepository;
 import com.lending.app.loan.domain.Loan;
-import com.lending.app.loan.repository.LoanRepository;
+import com.lending.app.loan.persistence.LoanRepository;
 import com.lending.app.notification.channel.NotificationSender;
 import com.lending.app.notification.channel.NotificationSenderFactory;
 import com.lending.app.notification.domain.NotificationRule;
 import com.lending.app.notification.domain.NotificationTemplate;
 import com.lending.app.notification.event.NotificationEvent;
-import com.lending.app.notification.repository.NotificationTemplateRepository;
+import com.lending.app.notification.persistence.NotificationTemplateRepository;
 import com.lending.app.notification.template.NotificationTemplateRenderer;
 import com.lending.app.shared.exception.ResourceNotFoundException;
 

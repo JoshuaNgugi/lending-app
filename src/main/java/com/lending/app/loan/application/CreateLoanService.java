@@ -10,12 +10,12 @@ import com.lending.app.customer.domain.CustomerStatus;
 import com.lending.app.customer.persistence.CustomerRepository;
 import com.lending.app.loan.api.CreateLoanRequest;
 import com.lending.app.loan.domain.Loan;
-import com.lending.app.loan.repository.LoanRepository;
+import com.lending.app.loan.persistence.LoanRepository;
 import com.lending.app.notification.event.NotificationEvent;
 import com.lending.app.notification.event.NotificationEventType;
 import com.lending.app.product.domain.LoanProduct;
 import com.lending.app.product.domain.ProductStatus;
-import com.lending.app.product.repository.LoanProductRepository;
+import com.lending.app.product.persistence.LoanProductRepository;
 import com.lending.app.shared.exception.ResourceNotFoundException;
 
 import jakarta.transaction.Transactional;

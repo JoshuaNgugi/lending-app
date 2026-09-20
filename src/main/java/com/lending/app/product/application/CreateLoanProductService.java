@@ -11,8 +11,8 @@ import com.lending.app.product.domain.LoanProduct;
 import com.lending.app.product.domain.LoanStructure;
 import com.lending.app.product.domain.ProductFee;
 import com.lending.app.product.exception.ProductAlreadyExistsException;
-import com.lending.app.product.repository.LoanProductRepository;
-import com.lending.app.product.repository.ProductFeeRepository;
+import com.lending.app.product.persistence.LoanProductRepository;
+import com.lending.app.product.persistence.ProductFeeRepository;
 
 import jakarta.transaction.Transactional;
 

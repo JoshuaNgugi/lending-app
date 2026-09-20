@@ -28,14 +28,14 @@ import com.lending.app.loan.api.CreateLoanRequest;
 import com.lending.app.loan.application.CreateLoanService;
 import com.lending.app.loan.domain.Loan;
 import com.lending.app.loan.domain.LoanStatus;
-import com.lending.app.loan.repository.LoanRepository;
+import com.lending.app.loan.persistence.LoanRepository;
 import com.lending.app.notification.event.NotificationEvent;
 import com.lending.app.notification.event.NotificationEventType;
 import com.lending.app.product.domain.BillingMode;
 import com.lending.app.product.domain.LoanProduct;
 import com.lending.app.product.domain.LoanStructure;
 import com.lending.app.product.domain.TenureUnit;
-import com.lending.app.product.repository.LoanProductRepository;
+import com.lending.app.product.persistence.LoanProductRepository;
 
 @ExtendWith(MockitoExtension.class)
 public class LoanTest {
