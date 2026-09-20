@@ -42,7 +42,7 @@ public class CreateLoanService {
     }
 
     public Loan execute(CreateLoanRequest request) {
-        Customer customer = customerRepository.findById(request.customerId())
+        Customer customer = customerRepository.findByIdForUpdate(request.customerId())
                 .orElseThrow(() -> new ResourceNotFoundException("Customer not found: " + request.customerId()));
 
         LoanProduct product = loanProductRepository.findById(request.productId())

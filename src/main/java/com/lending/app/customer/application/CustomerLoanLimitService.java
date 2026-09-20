@@ -36,7 +36,7 @@ public class CustomerLoanLimitService {
         public CustomerLoanLimitDetails setLimit(UUID customerId, BigDecimal limitAmount,
                         String currency, String reason) {
 
-                Customer customer = customerRepository.findById(customerId)
+                Customer customer = customerRepository.findByIdForUpdate(customerId)
                                 .orElseThrow(() -> new ResourceNotFoundException(
                                                 "Customer not found: " + customerId));
 

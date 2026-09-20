@@ -147,7 +147,7 @@ public class LoanTest {
 
         Loan loan = new Loan(customer, product, request.principal());
 
-        when(customerRepository.findById(request.customerId())).thenReturn(Optional.of(customer));
+        when(customerRepository.findByIdForUpdate(request.customerId())).thenReturn(Optional.of(customer));
 
         when(loanProductRepository.findById(request.productId())).thenReturn(Optional.of(product));
 
@@ -156,7 +156,7 @@ public class LoanTest {
         service.execute(request);
 
         verify(eventPublisher).publishEvent(
-            argThat((Object event) -> event instanceof NotificationEvent notificationEvent
+                argThat((Object event) -> event instanceof NotificationEvent notificationEvent
                         && notificationEvent.eventType() == NotificationEventType.LOAN_CREATED
                         && Objects.equals(notificationEvent.loanId(), loan.getId())
                         && Objects.equals(notificationEvent.customerId(), customer.getId())
