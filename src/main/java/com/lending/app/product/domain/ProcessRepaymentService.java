@@ -56,7 +56,7 @@ public class ProcessRepaymentService {
 
         validateAmount(amount);
 
-        Loan loan = loanRepository.findById(loanId)
+        Loan loan = loanRepository.findByIdForUpdate(loanId)
                 .orElseThrow(() -> new ResourceNotFoundException("Loan not found: " + loanId));
 
         validateLoan(loan);

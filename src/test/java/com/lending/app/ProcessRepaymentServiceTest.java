@@ -104,7 +104,7 @@ public class ProcessRepaymentServiceTest {
         Installment installment1 = new Installment(repaymentSchedule, 1,
                 LocalDate.of(2026, 10, 17), new BigDecimal("3333.33"));
 
-        when(loanRepository.findById(loanId)).thenReturn(Optional.of(loan));
+        when(loanRepository.findByIdForUpdate(loanId)).thenReturn(Optional.of(loan));
 
         when(repaymentRepository.existsByReference("PAY-001")).thenReturn(false);
 
@@ -148,7 +148,7 @@ public class ProcessRepaymentServiceTest {
         Installment installment2 = new Installment(repaymentSchedule, 2,
                 LocalDate.of(2026, 11, 17), new BigDecimal("3333.33"));
 
-        when(loanRepository.findById(loanId)).thenReturn(Optional.of(loan));
+        when(loanRepository.findByIdForUpdate(loanId)).thenReturn(Optional.of(loan));
 
         when(repaymentRepository.existsByReference("PAY-002")).thenReturn(false);
 
@@ -206,7 +206,7 @@ public class ProcessRepaymentServiceTest {
         Installment installment = new Installment(repaymentSchedule, 1,
                 LocalDate.of(2026, 10, 17), new BigDecimal("1000.00"));
 
-        when(loanRepository.findById(loanId)).thenReturn(Optional.of(loan));
+        when(loanRepository.findByIdForUpdate(loanId)).thenReturn(Optional.of(loan));
 
         when(repaymentRepository.existsByReference("PAY-003")).thenReturn(false);
 
@@ -235,7 +235,7 @@ public class ProcessRepaymentServiceTest {
         Installment installment = new Installment(repaymentSchedule, 1,
                 LocalDate.of(2026, 10, 17), new BigDecimal("1000.00"));
 
-        when(loanRepository.findById(loanId)).thenReturn(Optional.of(loan));
+        when(loanRepository.findByIdForUpdate(loanId)).thenReturn(Optional.of(loan));
 
         when(repaymentRepository.existsByReference("PAY-004")).thenReturn(false);
 
@@ -259,7 +259,7 @@ public class ProcessRepaymentServiceTest {
      */
     @Test
     void shouldRejectDuplicateRepaymentReference() {
-        when(loanRepository.findById(loanId)).thenReturn(Optional.of(loan));
+        when(loanRepository.findByIdForUpdate(loanId)).thenReturn(Optional.of(loan));
 
         when(repaymentRepository.existsByReference("PAY-005")).thenReturn(true);
 
@@ -285,7 +285,7 @@ public class ProcessRepaymentServiceTest {
 
         loan.close();
 
-        when(loanRepository.findById(loanId)).thenReturn(Optional.of(loan));
+        when(loanRepository.findByIdForUpdate(loanId)).thenReturn(Optional.of(loan));
 
         assertThrows(IllegalStateException.class, () -> {
             processRepaymentService.execute(loanId, new BigDecimal("500.00"), "PAY-006", "MPESA");
@@ -300,7 +300,7 @@ public class ProcessRepaymentServiceTest {
      */
     @Test
     void shouldRejectRepaymentForNonExistentLoan() {
-        when(loanRepository.findById(loanId)).thenReturn(Optional.empty());
+        when(loanRepository.findByIdForUpdate(loanId)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> {
             processRepaymentService.execute(loanId, new BigDecimal("500.00"), "PAY-007", "MPESA");
@@ -357,7 +357,7 @@ public class ProcessRepaymentServiceTest {
                 LocalDate.of(2026, 10, 17),
                 new BigDecimal("3333.33"));
 
-        when(loanRepository.findById(loanId)).thenReturn(Optional.of(loan));
+        when(loanRepository.findByIdForUpdate(loanId)).thenReturn(Optional.of(loan));
         when(repaymentRepository.existsByReference(reference)).thenReturn(false);
         when(loanFeeRepository.findOutstandingFees(loanId)).thenReturn(List.of());
         when(installmentRepository.findOutstandingInstallments(repaymentSchedule.getId()))
