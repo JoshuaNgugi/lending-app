@@ -159,3 +159,90 @@ All fields are optional, but supplied values are validated:
    "segment": "BUSINESS"
 }
 ```
+
+#### Set or replace a customer loan limit
+
+`PUT /api/v1/customers/{customerId}/loan-limit`
+
+```json
+{
+   "limitAmount": 50000.00,
+   "currency": "KES",
+   "reason": "Updated after credit review"
+}
+```
+
+#### View a customer loan limit
+
+`GET /api/v1/customers/{customerId}/loan-limit`
+
+The response includes the configured limit, available amount, currency, reason, effective date, and status.
+
+### Loan Products
+
+#### Create a loan product
+
+`POST /api/v1/products`
+
+```json
+{
+   "code": "SALARY-3M",
+   "name": "Salary Loan 3 Months",
+   "description": "Three month salary loan",
+   "tenureValue": 3,
+   "tenureUnit": "MONTHS",
+   "structure": "INSTALLMENT",
+   "billingMode": "INDIVIDUAL",
+   "billingDay": null,
+   "gracePeriodDays": 3,
+   "installmentCount": 3,
+   "writeOffAfterDays": 90,
+   "fees": [
+      {
+         "feeType": "SERVICE",
+         "calculationType": "PERCENTAGE",
+         "value": 2.5,
+         "applicationTiming": "ORIGINAL",
+         "triggerDays": null
+      },
+      {
+         "feeType": "LATE",
+         "calculationType": "FIXED",
+         "value": 200.00,
+         "applicationTiming": "AFTER_DUE_DATE",
+         "triggerDays": 5
+      }
+   ]
+}
+```
+
+Important configuration rules:
+
+- `tenureUnit` is `DAYS` or `MONTHS`.
+- `structure` is `LUMP_SUM` or `INSTALLMENT`.
+- Installment products require `installmentCount`; lump-sum products must omit it.
+- `billingMode` is `INDIVIDUAL` or `CONSOLIDATED`.
+- Consolidated billing requires `billingDay` from 1 to 28.
+- Individual billing must omit `billingDay`.
+- `writeOffAfterDays` is optional. When configured, it must be positive.
+- Late fees must use `AFTER_DUE_DATE` and must specify `triggerDays`.
+
+Supported fee types include service, daily, and late fees. Calculation types support fixed and percentage values.
+
+#### View a product
+
+`GET /api/v1/products/{productId}`
+
+#### List products
+
+`GET /api/v1/products`
+
+#### Update a product
+
+`PATCH /api/v1/products/{productId}`
+
+#### Deactivate a product
+
+`POST /api/v1/products/{productId}/deactivate`
+
+Product terms are copied into loan terms when a loan is disbursed, so later product changes do not alter existing loans.
