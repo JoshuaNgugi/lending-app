@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.lending.app.loan.application.CreateLoanService;
+import com.lending.app.loan.application.CancelLoanService;
 import com.lending.app.loan.application.DisburseLoanService;
 import com.lending.app.loan.domain.Loan;
 
@@ -21,10 +22,13 @@ import jakarta.validation.Valid;
 public class LoanController {
 
     private final CreateLoanService createLoanService;
+    private final CancelLoanService cancelLoanService;
     private final DisburseLoanService disburseLoanService;
 
-    public LoanController(CreateLoanService createLoanService, DisburseLoanService disburseLoanService) {
+    public LoanController(CreateLoanService createLoanService, CancelLoanService cancelLoanService,
+            DisburseLoanService disburseLoanService) {
         this.createLoanService = createLoanService;
+        this.cancelLoanService = cancelLoanService;
         this.disburseLoanService = disburseLoanService;
     }
 
@@ -43,6 +47,14 @@ public class LoanController {
     public LoanResponse disburse(@PathVariable("loanId") UUID loanId) {
 
         Loan loan = disburseLoanService.execute(loanId);
+
+        return toResponse(loan);
+    }
+
+    @PostMapping("/{loanId}/cancel")
+    public LoanResponse cancel(@PathVariable("loanId") UUID loanId) {
+
+        Loan loan = cancelLoanService.execute(loanId);
 
         return toResponse(loan);
     }
