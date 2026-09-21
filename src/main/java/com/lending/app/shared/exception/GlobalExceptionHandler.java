@@ -6,16 +6,13 @@ import java.util.Map;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import jakarta.validation.ConstraintViolationException;
-
-import com.lending.app.customer.exception.CustomerAlreadyExistsException;
-import com.lending.app.customer.exception.CustomerNotFoundException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -25,15 +22,10 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiError("RESOURCE_NOT_FOUND", ex.getMessage()));
     }
 
-    @ExceptionHandler(CustomerNotFoundException.class)
-    ResponseEntity<ApiError> handleNotFound(CustomerNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiError("CUSTOMER NOT FOUND", ex.getMessage()));
-    }
-
-    @ExceptionHandler(CustomerAlreadyExistsException.class)
-    ResponseEntity<ApiError> handleConflict(CustomerAlreadyExistsException ex) {
+    @ExceptionHandler(ResourceAlreadyExistsException.class)
+    ResponseEntity<ApiError> handleConflict(ResourceAlreadyExistsException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(new ApiError("CUSTOMER_ALREADY_EXISTS", ex.getMessage()));
+                .body(new ApiError("RESOURCE_ALREADY_EXISTS", ex.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

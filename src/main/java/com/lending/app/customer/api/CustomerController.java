@@ -47,8 +47,7 @@ public class CustomerController {
     }
 
     @GetMapping("/{customerId}")
-    public CustomerResponse get(
-            @PathVariable("customerId") UUID customerId) {
+    public CustomerResponse get(@PathVariable("customerId") UUID customerId) {
         Customer customer = getCustomerService.execute(customerId);
 
         return toResponse(customer);
@@ -59,7 +58,7 @@ public class CustomerController {
         return getCustomerService.executeAll().stream().map(this::toResponse).toList();
     }
 
-    @PatchMapping("{customerId}")
+    @PatchMapping("/{customerId}")
     public ResponseEntity<CustomerResponse> patch(@PathVariable("customerId") UUID customerId,
             @Valid @RequestBody UpdateCustomerRequest request) {
 

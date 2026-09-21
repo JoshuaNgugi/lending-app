@@ -7,8 +7,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.lending.app.customer.api.UpdateCustomerRequest;
 import com.lending.app.customer.domain.Customer;
-import com.lending.app.customer.exception.CustomerNotFoundException;
 import com.lending.app.customer.persistence.CustomerRepository;
+import com.lending.app.shared.exception.ResourceNotFoundException;
 
 @Service
 @Transactional
@@ -22,7 +22,7 @@ public class UpdateCustomerService {
 
     public Customer execute(UUID uuid, UpdateCustomerRequest request) {
         Customer customer = customerRepository.findById(uuid)
-                .orElseThrow(() -> new CustomerNotFoundException("Customer with ID: " + uuid + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Customer with ID: " + uuid + " not found"));
 
         customer.updateDetails(
                 request.firstName(),

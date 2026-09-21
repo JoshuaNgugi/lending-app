@@ -10,9 +10,9 @@ import com.lending.app.product.domain.FeeType;
 import com.lending.app.product.domain.LoanProduct;
 import com.lending.app.product.domain.LoanStructure;
 import com.lending.app.product.domain.ProductFee;
-import com.lending.app.product.exception.ProductAlreadyExistsException;
 import com.lending.app.product.persistence.LoanProductRepository;
 import com.lending.app.product.persistence.ProductFeeRepository;
+import com.lending.app.shared.exception.ResourceAlreadyExistsException;
 
 import jakarta.transaction.Transactional;
 
@@ -35,7 +35,7 @@ public class CreateLoanProductService {
         validate(request);
 
         if (loanProductRepository.existsByCodeIgnoreCase(request.code())) {
-            throw new ProductAlreadyExistsException("Product with code already exists");
+            throw new ResourceAlreadyExistsException("Product with code already exists");
         }
 
         LoanProduct product = new LoanProduct(

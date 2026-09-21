@@ -8,7 +8,7 @@ Java lending application developed for the Tezza interview case study. The appli
 - Spring Boot 4.1
 - Spring Web MVC
 - Spring Data JPA / Hibernate
-- PostgreSQL 17
+- PostgreSQL 17 (Dockerized)
 - Flyway database migrations
 
 - JUnit 5 and Mockito

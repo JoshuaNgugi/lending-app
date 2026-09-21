@@ -7,8 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.lending.app.customer.domain.Customer;
-import com.lending.app.customer.exception.CustomerNotFoundException;
 import com.lending.app.customer.persistence.CustomerRepository;
+import com.lending.app.shared.exception.ResourceNotFoundException;
 
 @Service
 @Transactional(readOnly = true)
@@ -23,7 +23,7 @@ public class GetCustomerService {
     public Customer execute(UUID customerId) {
 
         return customerRepository.findById(customerId)
-                .orElseThrow(() -> new CustomerNotFoundException(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         "Customer with ID: " + customerId + " not found"));
     }
 

@@ -5,8 +5,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.lending.app.customer.api.CreateCustomerRequest;
 import com.lending.app.customer.domain.Customer;
-import com.lending.app.customer.exception.CustomerAlreadyExistsException;
 import com.lending.app.customer.persistence.CustomerRepository;
+import com.lending.app.shared.exception.ResourceAlreadyExistsException;
 
 @Service
 @Transactional
@@ -20,12 +20,12 @@ public class CreateCustomerService {
     public Customer execute(CreateCustomerRequest request) {
 
         if (customerRepository.existsByEmail(request.email())) {
-            throw new CustomerAlreadyExistsException(
+            throw new ResourceAlreadyExistsException(
                     "Customer with the provided email already exists");
         }
 
         if (customerRepository.existsByPhoneNumber(request.phoneNumber())) {
-            throw new CustomerAlreadyExistsException(
+            throw new ResourceAlreadyExistsException(
                     "Customer with the provided phone number already exists");
         }
 
