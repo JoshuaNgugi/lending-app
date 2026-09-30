@@ -15,7 +15,8 @@ Java lending application developed for the Tezza interview case study. The appli
 
 ## Architecture
 
-The application is structured as a modular monolith to showcase adaptability to microservices architecture. Each business capability has separate API, application, domain, and repository responsibilities where appropriate:
+Given the scope of the case study and the clear trade-offs of building microservices, I chose a modular monolith with explicit bounded contexts. The architecture preserves service boundaries and uses domain events so that modules such as Notification can later be extracted into independent microservices without redesigning the core domain.
+Each business capability has separate API, application, domain, and repository responsibilities where appropriate:
 
 ```text
 com.lending.app
