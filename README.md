@@ -345,6 +345,15 @@ Flyway migrations are in `src/main/resources/db/migration` and create the databa
 - Customer notification preferences
 - Customer loan limits
 - Write-off policy fields
+- Assessment demo customers, products, loans, schedules, fees, repayments, allocations, and notification preferences
+
+Migration `V15__seed_demo_lending_portfolio.sql` loads the sample assessment data with dates relative to migration day. It includes open, overdue, closed, created, cancelled, and written-off loans; individual and consolidated products; fixed and percentage fees; sample repayments; and customer limits.
+
+The demo customers are `amina.retail@example.com`, `brian.salaried@example.com`, and `chao.business@example.com`. Amina has open and overdue loans suitable for balance and repayment demonstrations; Brian has created, cancelled, and closed loan examples; Chao has a written-off loan example. Product codes include `DEMO-SALARY-3M`, `DEMO-CONSOLIDATED-6M`, and `DEMO-EMERGENCY-30D`.
+
+Seed IDs remain UUIDs and use hexadecimal prefixes as readable type tags, for example `c0570000-0000-4000-8000-000000000001` for Amina and `10a00000-0000-4000-8000-000000000001` for her open loan.
+
+Flyway migrations run once per database. To reload the seed data for a fresh demo, recreate the local database volume as described in [Run Locally](#run-locally).
 
 ## Design and Reliability Notes
 
